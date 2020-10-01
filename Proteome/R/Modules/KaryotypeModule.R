@@ -220,7 +220,8 @@ KaryotypeServer <- function(id) {
                          tutorialClicks = list(
                            "BoxplotGroupComparison" = 0
                          ),
-                         ignoreTutorial= 0
+                         ignoreTutorial= 0, 
+                         errorMessage = ""
                          )  
 
     observeEvent(input$TutorialName, {
@@ -301,13 +302,19 @@ KaryotypeServer <- function(id) {
         
     # BASE DATASET WITH UI FILTERS APPLIED 
     dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh),{
-   
-      sourceData %>%
+     
+      dataframe <- sourceData %>%
         filter(Platform==input$Platform) %>%
         filter(Sex %in% input$Sex) %>%
         filter(AgeGroup %in% input$AgeGroup) %>%
-        #filter(AgeGroup == input$AgeGroup) %>%
-        CUSOMShinyHelpers::applyGroupCountThreshold(Status,c("Negative","Positive"), 1)   
+        CUSOMShinyHelpers::applyGroupCountThreshold(Status,Aptamer, threshold = 1)   
+      
+      if(nrow(dataframe) > 0) {
+        return(dataframe)
+      } 
+      else {
+        return(NULL)
+      }
       
     }, ignoreInit = TRUE)
     
@@ -316,7 +323,7 @@ KaryotypeServer <- function(id) {
     FoldChangeData <- eventReactive(input$VolcanoDatasetRefresh,{
       
       baseData <- dataWithFilters()
-
+      
       if(!is.null(baseData)) { 
 
         show_modal_progress_circle(
@@ -340,7 +347,7 @@ KaryotypeServer <- function(id) {
               
         foldChange <- baseData %>%
           CUSOMShinyHelpers::SummarizeByGroup(MeasuredValue, Aptamer, Status) %>%
-          CUSOMShinyHelpers::CalculateFoldChangeByKeyGroup(Aptamer, Status, median, "Negative")
+          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Aptamer, Status, median, "Negative")
         
         update_modal_progress(
             value = 2,
@@ -349,7 +356,7 @@ KaryotypeServer <- function(id) {
           )
 
         statsData <- baseData %>%
-          CUSOMShinyHelpers::GetStatTestByKeyGroup(RecordID,Aptamer,Status,MeasuredValue,'ks.test')
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Aptamer,Status,MeasuredValue,'ks.test')
         
         update_modal_progress(
             value = 3,
@@ -360,6 +367,20 @@ KaryotypeServer <- function(id) {
         finalData <- inner_join(foldChange, statsData, by="Aptamer") %>%
           mutate(selected_ = ifelse(Aptamer==input$Analyte,1,0))
         
+        if("error" %in% colnames(finalData)) {
+          
+          rv$errorMessage <- paste0('Error running ',unique(finalData$method),': ',  unique(finalData$error))
+          
+          finalData <- NULL 
+          
+        }
+        
+        else {
+
+          rv$errorMessage <- ""
+
+        }
+
         remove_modal_progress(session = getDefaultReactiveDomain())
             
         rv$RunRefresh <- 0
@@ -489,7 +510,8 @@ KaryotypeServer <- function(id) {
       HTML(
         paste0(
          'Based on your chosen filters, there are not enough observations to generate the plot. <br /> <br />
-          Please re-adjust dataset options and try again.'
+          Please re-adjust dataset options and try again.', 
+          ifelse(rv$errorMessage!="",paste0('<br /><br /><em><b>',rv$errorMessage,'</b></em>'),'')
         )
       )
     })
@@ -610,7 +632,7 @@ KaryotypeServer <- function(id) {
           filter(Aptamer==input$Analyte) %>%
           mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
                 y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )
-          ) %>% CUSOMShinyHelpers::applyGroupCountThreshold(Status,c("Negative","Positive"), 10)        
+          ) %>% CUSOMShinyHelpers::applyGroupCountThreshold(Status, threshold = 10)        
       }
 
       else {
