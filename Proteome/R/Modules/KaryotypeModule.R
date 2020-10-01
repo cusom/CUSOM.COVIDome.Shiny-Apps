@@ -22,7 +22,6 @@ KaryotypeUI <- function(id) {
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Platform",choices = sort(platforms), selected = platforms[1])
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups, inline=TRUE )
-        # ,awesomeRadio(inputId = NS(id,"AgeGroup"),label = "Age Group",choices = ageGroups, selected = ageGroups[1] ,inline = TRUE, checkbox = TRUE)
         ,selectizeInput(
           NS(id,"Analyte"),
           label="Analyte",
@@ -109,7 +108,7 @@ KaryotypeUI <- function(id) {
                       solidHeader = FALSE, 
                       collapsible = TRUE,         
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"))
+                        CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"), status="primary")
                         ),
                       shinyjs::hidden(
                         CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupA"),label = "Group A", choices = NULL, selected = NULL, multiple = TRUE )
@@ -501,6 +500,8 @@ KaryotypeServer <- function(id) {
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
+      tooltip <- ifelse(input$VolcanoDatasetRefresh,'Click here to learn about volcano plots','Click here to learn about setting dataset options')
+      
       HTML(
         paste0(
           '<h3>',title,' 
@@ -509,7 +510,7 @@ KaryotypeServer <- function(id) {
             data-placement="auto right" 
             title="" 
             class="fas fa-info-circle gtooltip"
-            data-original-title="Click here to learn about setting dataset options">
+            data-original-title="',tooltip,'">
             </span>
           </h3>'
         )
@@ -601,11 +602,20 @@ KaryotypeServer <- function(id) {
 
       )
       
-      analyteData <- shared_dataWithFilters$data(withSelection = FALSE) %>%  
-        filter(Aptamer==input$Analyte) %>%
-        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
-               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )
-        )
+      dataframe <- dataWithFilters()
+      
+      if(!is.null(dataframe)) {
+       
+        dataframe %>%
+          filter(Aptamer==input$Analyte) %>%
+          mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
+                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )
+          ) %>% CUSOMShinyHelpers::applyGroupCountThreshold(Status,c("Negative","Positive"), 10)        
+      }
+
+      else {
+        NULL
+      }
 
     })
         
@@ -650,6 +660,7 @@ KaryotypeServer <- function(id) {
       if(!is.null(dataset)) {
         
         shinyjs::show("AnalyteContent")
+        shinyjs::show("LogTransform")
         shinyjs::hide("AnalyteContentEmpty")
 
         dataset %>%      
@@ -661,7 +672,9 @@ KaryotypeServer <- function(id) {
             displayModeBar = TRUE,
             displaylogo = FALSE,
             modeBarButtons = list(
-              list("toImage") 
+              list("toImage")
+              # ,list(plotlyCustomIcons$BoxplotCompareGroup)
+              # ,list(plotlyCustomIcons$BoxplotClear) 
             )
           ) %>% onRender("function(el) { overrideModebarDivId(el); }")
      
@@ -670,6 +683,7 @@ KaryotypeServer <- function(id) {
       else {
         
         shinyjs::hide("AnalyteContent")
+        shinyjs::hide("LogTransform")
         shinyjs::show("AnalyteContentEmpty")
         CUSOMShinyHelpers::getBoxplotForEmptyData(text = "")
         
@@ -702,7 +716,7 @@ KaryotypeServer <- function(id) {
            
         HTML(
           paste0(
-            '<h3>Effect of Covid 19 on ',input$Analyte,' in plasma</h3>',
+            '<h3>Effect of Covid 19 Status on ',input$Analyte,' in plasma</h3>',
             CUSOMShinyHelpers::formatPValue(pval,pValueThreshold)
            
           )

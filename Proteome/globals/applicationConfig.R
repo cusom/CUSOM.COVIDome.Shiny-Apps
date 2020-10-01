@@ -5,6 +5,21 @@ appConfig <- readRDS('config/appConfig.rds')
 
 appConfig$footerHTML <- CUSOMShinyHelpers::getSOMStandardFooter('images/medicine_h_clr.png')
 
+ApplicationURL <- ifelse(appConfig$Environment=="Production",'','')
+
+sideBarMenuItems <- readRDS('config/sidebarMenuItems.rds')
+
+namespaces <- as.list(sideBarMenuItems$tabName) 
+
+tabs <- as.list(sideBarMenuItems$tabName)    
+
+dropdownlinks <- readRDS('config/dropdownlinks.rds')
+
+tutorials<- readRDS('config/tutorials.rds')
+
+plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
+
+
 ##### Global Constants ##### 
 pValueThreshold <- 0.05
 

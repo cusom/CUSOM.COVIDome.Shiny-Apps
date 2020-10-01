@@ -1,19 +1,4 @@
-
-ApplicationURL <- ifelse(appConfig$Environment=="Production",'https://www.google.com','https://www.google.com')
-
-sideBarMenuItems <- readRDS('config/sidebarMenuItems.rds')
-
-namespaces <- as.list(sideBarMenuItems$tabName) 
-
-tabs <- as.list(sideBarMenuItems$tabName)    
-
-dropdownlinks <- readRDS('config/dropdownlinks.rds')
-
-tutorials<- readRDS('Data/tutorials.rds')
-
 sourceData <- readRDS('Data/sourceData.rds')
-
-sourceData %>% mutate_if(is.factor, as.character) -> sourceData
 
 ParticipantEncounter <- readRDS('Data/ParticipantEncounter.rds')
 
