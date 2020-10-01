@@ -313,7 +313,7 @@ KaryotypeServer <- function(id) {
           text = "Calculating Fold Change...",
           session = shiny::getDefaultReactiveDomain()
         )
-              
+            
         foldChange <- baseData %>%
           CUSOMShinyHelpers::SummarizeByGroup(MeasuredValue, Analyte, Status) %>%
           CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, Status, median, "Negative")
@@ -472,7 +472,7 @@ KaryotypeServer <- function(id) {
 
     output$VolcanoPlotTitle <- renderUI({
      
-      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of Covid 19 Status on all metabolites in Plasma'),'Please start by setting dataset options below')
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of COVID-19 status on all metabolites in plasma'),'Please start by setting dataset options below')
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
@@ -525,7 +525,7 @@ KaryotypeServer <- function(id) {
     observeEvent(c(input$Analyte),{
    
       if (input$Analyte != '') {
-      
+        
         r <- shared_FoldChangeData$data(withSelection = FALSE) %>%
           filter(Analyte==input$Analyte) %>%
           as_tibble() %>%
@@ -577,7 +577,7 @@ KaryotypeServer <- function(id) {
       )
       
       dataframe <- dataWithFilters()
-      
+     
       if(!is.null(dataframe)) {
        
         dataframe %>%
@@ -689,7 +689,7 @@ KaryotypeServer <- function(id) {
            
         HTML(
           paste0(
-            '<h3>Effect of Covid 19 Status on ',input$Analyte,' in plasma</h3>',
+            '<h3>Effect of COVID-19 status on ',input$Analyte,' in plasma</h3>',
             CUSOMShinyHelpers::formatPValue(pval,pValueThreshold)
            
           )

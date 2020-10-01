@@ -518,7 +518,7 @@ KaryotypeServer <- function(id) {
 
     output$VolcanoPlotTitle <- renderUI({
      
-      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of Covid 19 Status on all ',ifelse(grepl('Meso',input$Platform),'cytokines','proteins')),'Please start by setting dataset options below')
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of COVID-19 status on all ',ifelse(grepl('Meso',input$Platform),'cytokines','proteins')),'Please start by setting dataset options below')
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
@@ -738,7 +738,7 @@ KaryotypeServer <- function(id) {
            
         HTML(
           paste0(
-            '<h3>Effect of Covid 19 Status on ',input$Analyte,' in plasma</h3>',
+            '<h3>Effect of COVID-19 status on ',input$Analyte,' in plasma</h3>',
             CUSOMShinyHelpers::formatPValue(pval,pValueThreshold)
            
           )
