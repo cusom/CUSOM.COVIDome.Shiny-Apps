@@ -19,8 +19,13 @@ tutorials<- readRDS('config/tutorials.rds')
 
 plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
 
+statTestValues <- c("Kolmogorov-Smirnov Test","Student's t-test","Wilcoxon test")
+statTestNames <- c("ks.test","t.test","wilcox.test")
+statTests <- setNames(statTestNames, statTestValues)
 
-##### Global Constants ##### 
+adjustmentMethods <- p.adjust.methods
+
+
 pValueThreshold <- 0.05
 
 # suppress warnings  
@@ -31,8 +36,5 @@ options(warn = -1)
 d21Colors <- c("#BBBDC0","#f2f2f3") 
 t21Colors <- c("#1D4D7C", "#3E99CD") 
 
-platformPlaceholder <- "Choose a platform..."
-cytokinePlaceholder <- "Choose a cytokine..."
-proteinPlaceholder <- "Choose a protein..."
 
 set.seed(round(runif(1,0,1)*1000000))

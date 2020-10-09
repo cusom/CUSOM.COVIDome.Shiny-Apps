@@ -20,8 +20,10 @@ KaryotypeUI <- function(id) {
         )
         ,tags$hr()
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Platform",choices = sort(platforms), selected = platforms[1])
+        ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests ,selected = statTests[1])
+        ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods, selected = "none")
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
-        ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups, inline=TRUE )
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups[1], inline=TRUE )
         ,selectizeInput(
           NS(id,"Analyte"),
           label="Analyte",
@@ -111,10 +113,10 @@ KaryotypeUI <- function(id) {
                         CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"), status="primary")
                         ),
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupA"),label = "Group A", choices = NULL, selected = NULL, multiple = TRUE )
+                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupA"),label = "Group A", choices = recordIDs, selected = NULL, multiple = TRUE )
                         ),
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupB"),label = "Group B", choices = NULL, selected = NULL, multiple = TRUE )
+                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupB"),label = "Group B", choices = recordIDs, selected = NULL, multiple = TRUE )
                         ),                  
                       withSpinner(plotlyOutput(NS(id,"AnalyteBoxPlot"),height = "630px"))                   
                     )                   
@@ -137,38 +139,103 @@ KaryotypeUI <- function(id) {
                 )
               )
             )
-            ,tags$hr()                            
+            ,tags$hr()  
+            ,fluidRow(
+              shinyjs::hidden(
+                div(
+                  id = NS(id,"GroupAnalysisOptions"),
+                  boxPlus(
+                    title = "You have selected 2 groups! Compare them here:",
+                    height = "auto",
+                    width = "auto",
+                    closable = FALSE, 
+                    status = "primary", 
+                    solidHeader = FALSE, 
+                    collapsible = TRUE,
+                    fluidRow(
+                      column(width=1),
+                      column(
+                        width=2,
+                        fluidRow(
+                          selectizeInput(
+                            NS(id,"GroupAnalysisChoice"),
+                            label = "Choose a comparison option below",
+                            choices = c('To another analyte'),
+                            options = list(
+                              placeholder = 'Using the selected groups, compare',
+                              onInitialize = I('function() { this.setValue(""); }'), 
+                              closeAfterSelect = FALSE, 
+                              selectOnTab = TRUE, 
+                              persist = TRUE, 
+                              `live-search` = TRUE, 
+                              maxoptions = 1
+                            )
+                          )
+                        ),
+                        fluidRow(
+                          selectizeInput(
+                            NS(id,"AnalyteComparision"),
+                            label="",
+                            choices='',
+                            options = list(
+                              placeholder = 'Analytes available to compare to:',
+                              onInitialize = I('function() { this.setValue(""); }'),
+                              closeAfterSelect = FALSE,
+                              selectOnTab = TRUE,
+                              persist = TRUE,
+                              `live-search` = TRUE,
+                              maxoptions = 1
+                            )
+                          )
+                        ),                       
+                        tags$hr()                                       
+                      ),
+                      column(
+                        width=8,
+                        div(
+                          withSpinner(plotlyOutput(NS(id,"AnalyteGroupComparisonPlot")))
+                        )
+                      ), 
+                      column(1) 
+                    ) 
+                  )
+                )
+              )
+            )                           
           ), 
           tabPanel(title = uiOutput(NS(id,"FoldChangeDataTitle")),
             fluidRow(
               box(
                 height="auto",
                 width = 12,
-                  fluidRow(
-                    box(
-                      width = 3,
-                      height = 120,
-                      sliderInput(
-                        inputId = NS(id,"FoldChange"),
-                        label = "Filter by Fold Change",
-                        min = 0,
-                        max = 6,
-                        step = 0.05,
-                        value = c(0,6)
-                      )
-                    ), 
-                    box(
-                      width = 3,
-                      height = 120,
-                      awesomeRadio(
-                        inputId = NS(id,"PValue"),
-                        label = "Filter by p-value significance level", 
-                        choices = c('all',"*", "**", "***",'not significant'),
-                        selected = "all",
-                        inline = TRUE
-                      )          
-                    ) 
-                  ),
+                fluidRow(
+                  box(
+                    width = 3,
+                    height = 150,
+                    sliderInput(
+                      inputId = NS(id,"FoldChange"),
+                      label = "Filter by Fold Change",
+                      min = 0,
+                      max = 6,
+                      step = 0.05,
+                      value = c(0,6)
+                    )
+                  ), 
+                  box(
+                    width = 3,
+                    height = 150,
+                    radioGroupButtons(
+                      inputId =  NS(id,"PValue"),
+                      label = "Filter by p-value significance level",
+                      choices = c('all',' ns P > 0.05'," * P &le; 0.05 ", " ** P &le; 0.01", " *** P &le; 0.001"),
+                      individual = FALSE,
+                      checkIcon = list(
+                          yes = tags$i(class = "fa fa-circle", style = "color: steelblue"),
+                          no = tags$i(class = "fa fa-circle-o", style = "color: steelblue")
+                          )
+                    )
+                  )                     
+                ),
                 tags$hr(),
                 fluidRow(
                   box(
@@ -179,17 +246,6 @@ KaryotypeUI <- function(id) {
                     DT::dataTableOutput(NS(id,"FoldChangeDataTable"))
                   )
                 )
-              )
-            )
-          ),
-          tabPanel(title = uiOutput(NS(id,"SelectedAnalyteRawDataTitle")),
-            fluidRow(
-              box(
-                title = "",
-                id = NS(id,"tabpanel3"),
-                height="auto",
-                width = 11,
-                DT::dataTableOutput(NS(id,"AnalyteDataTable"))
               )
             )
           )
@@ -212,7 +268,7 @@ KaryotypeServer <- function(id) {
                          maxFoldChange = 0,
                          lastGroupFilled = NA ,
                          selectedAnalyte = list(
-                           pvalue = -1, 
+                           pvalue = NA, 
                            xCoordiante = NA, 
                            yCoordinate = NA, 
                            name = ''
@@ -221,7 +277,8 @@ KaryotypeServer <- function(id) {
                            "BoxplotGroupComparison" = 0
                          ),
                          ignoreTutorial= 0, 
-                         errorMessage = ""
+                         errorMessage = "",
+                         groupselectmodalstate = -1  
                          )  
 
     observeEvent(input$TutorialName, {
@@ -268,21 +325,21 @@ KaryotypeServer <- function(id) {
     
     observeEvent(c(input$Platform),{
       
-      if(grepl('Meso',input$Platform)) {
+      if(grepl('Mass',input$Platform)) {
         
-        placeholder <- cytokinePlaceholder
-        AnalyteLabel <- "Hightlight Cytokine (optional)"
-        rv$analyteLabel <- "Cytokine"
-        analyteChoices <- cytokines
+        placeholder <- "Choose a protein"
+        AnalyteLabel <- "Highlight Protein (optional)"
+        rv$analyteLabel <- "Protein"
+        analyteChoices <- proteins
         
       }
       
-      else {
+      if(grepl('SOMA',input$Platform)) {
         
-        placeholder <- proteinPlaceholder
-        AnalyteLabel <- "Hightlight Protein (optional)"
-        rv$analyteLabel <- "Protein"
-        analyteChoices <- proteins
+        placeholder <- "Choose an aptamer"
+        AnalyteLabel <- "Highlight aptamer (optional)"
+        rv$analyteLabel <- "Aptamer"
+        analyteChoices <- aptamers
 
       }
       
@@ -291,7 +348,29 @@ KaryotypeServer <- function(id) {
         inputId = "Analyte",
         label = AnalyteLabel,
         choices = analyteChoices
+      )
+
+      updateSelectizeInput(
+        session = session,
+        inputId = "GroupAnalysisChoice", 
+        selected = ""
+      )
+
+      updatePickerInput(
+        session = session,
+        inputId = 'GroupA',
+        selected = ""
+      )
+
+      updatePickerInput(
+        session = session,
+        inputId = 'GroupB',
+        selected = ""
       )    
+
+      shinyjs::hide("LogTransform")
+      shinyjs::hide("GroupAnalysisOptions")
+      shinyjs::hide("AnalyteContent")
      
     })
 
@@ -306,8 +385,9 @@ KaryotypeServer <- function(id) {
       dataframe <- sourceData %>%
         filter(Platform==input$Platform) %>%
         filter(Sex %in% input$Sex) %>%
-        filter(AgeGroup %in% input$AgeGroup) %>%
-        CUSOMShinyHelpers::applyGroupCountThreshold(Status,Aptamer, threshold = 1)   
+        mutate(AgeGroup = case_when(input$AgeGroup=="All" ~ "All", input$AgeGroup!="All" ~ AgeGroup)) %>%
+        filter(AgeGroup == input$AgeGroup) %>%
+        CUSOMShinyHelpers::applyGroupCountThreshold(Status,Analyte, threshold = 1)   
       
       if(nrow(dataframe) > 0) {
         return(dataframe)
@@ -323,7 +403,7 @@ KaryotypeServer <- function(id) {
     FoldChangeData <- eventReactive(input$VolcanoDatasetRefresh,{
       
       baseData <- dataWithFilters()
-      
+     
       if(!is.null(baseData)) { 
 
         show_modal_progress_circle(
@@ -346,27 +426,33 @@ KaryotypeServer <- function(id) {
         )
               
         foldChange <- baseData %>%
-          CUSOMShinyHelpers::SummarizeByGroup(MeasuredValue, Aptamer, Status) %>%
-          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Aptamer, Status, median, "Negative")
+          CUSOMShinyHelpers::SummarizeByGroup(MeasuredValue, Analyte, Status) %>%
+          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, Status, median, "Negative")
         
         update_modal_progress(
-            value = 2,
-            text = "Calculating P Values...",
-            session = shiny::getDefaultReactiveDomain()
-          )
-
+          value = 2,
+          text = paste0("Running ",names(which(statTests == input$StatTest)),"..."),
+          session = shiny::getDefaultReactiveDomain()
+        )
+       
         statsData <- baseData %>%
-          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Aptamer,Status,MeasuredValue,'ks.test')
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Analyte,Status,MeasuredValue,input$StatTest, input$AdjustmentMethod)
         
         update_modal_progress(
-            value = 3,
-            text = "Finalizing plot...",
-            session = shiny::getDefaultReactiveDomain()
-          )
-          
-        finalData <- inner_join(foldChange, statsData, by="Aptamer") %>%
-          mutate(selected_ = ifelse(Aptamer==input$Analyte,1,0))
+          value = 3,
+          text = ifelse(input$AdjustmentMethod=="none",paste0("Running ",names(which(statTests == input$StatTest)),"..."),paste0("Adjusting P Values using ",input$AdjustmentMethod," method...")),
+          session = shiny::getDefaultReactiveDomain()
+        )
         
+        finalData <- inner_join(foldChange, statsData, by="Analyte") %>%
+          mutate(selected_ = ifelse(Analyte==input$Analyte,1,0))
+
+        update_modal_progress(
+          value = 4,
+          text = "Finalizing plot...",
+          session = shiny::getDefaultReactiveDomain()
+        )
+          
         if("error" %in% colnames(finalData)) {
           
           rv$errorMessage <- paste0('Error running ',unique(finalData$method),': ',  unique(finalData$error))
@@ -406,18 +492,53 @@ KaryotypeServer <- function(id) {
     
     FoldChangeDataTableData <- reactive({
       
-      shared_FoldChangeData$data(withSelection = FALSE) %>%
-        mutate(pvalsignificance = case_when(input$PValue=="all" ~"all", p.value <= 0.001 ~ "***", p.value <= 0.01 ~ "**", p.value <= 0.05 ~ "*", p.value > 0.05 ~ "not significant")) %>%
+      dataframe <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+        mutate(pvalsignificance = case_when(input$PValue=="all" ~"all", p.value <= 0.001 ~ "***", p.value <= 0.01 ~ "**", p.value <= 0.05 ~ "*", p.value > 0.05 ~ "ns")) %>%
         filter(FoldChange >= min(input$FoldChange), FoldChange <= max(input$FoldChange)) %>%
         filter(pvalsignificance == input$PValue) %>%
-        select(Aptamer,FoldChange,p.value,`Positive`, `Negative`,log2Foldchange,`-log10pvalue`) %>%
-        rename( "Fold Change (Positive/Negative)" = FoldChange , 
-                "p-value" = p.value, 
-                "Postive Median" = `Positive`, 
-                "Negative Median" = `Negative`, 
-                "log<sub>2</sub> Fold Change" = `log2Foldchange` , 
-                "-log<sub>10</sub> p-value" = `-log10pvalue`
-        )
+        select(Analyte,FoldChange,p.value,p.value.original,`Positive`, `Negative`,log2Foldchange,`-log10pvalue`,method,p.value.adjustment.method)
+      
+      if(nrow(dataframe) > 0) {
+        
+        if(unique(dataframe$p.value.adjustment.method=="none")) {
+          
+          dataframe <- dataframe %>%
+            select(-c(p.value.original,p.value.adjustment.method)) %>%
+            rename( "Fold Change (Positive/Negative)" = FoldChange , 
+                    "p-value" = p.value, 
+                    "Positive Median" = `Positive`, 
+                    "Negative Median" = `Negative`, 
+                    "log<sub>2</sub> Fold Change" = `log2Foldchange` , 
+                    "-log<sub>10</sub> p-value" = `-log10pvalue` , 
+                    "Statistical test" = method
+            )
+          
+        }
+        
+        else {
+          
+          dataframe <- dataframe %>%
+            rename( "Fold Change (Positive/Negative)" = FoldChange , 
+                    "p-value (adj)" = p.value, 
+                    "p-value (original)" = p.value.original,
+                    "Positive Median" = `Positive`, 
+                    "Negative Median" = `Negative`, 
+                    "log<sub>2</sub> Fold Change" = `log2Foldchange` , 
+                    "-log<sub>10</sub> p-value (adj)" = `-log10pvalue` , 
+                    "Statistical test" = method, 
+                    "Adjustment Method" = p.value.adjustment.method
+            )
+          
+        }
+        
+        return(dataframe)
+      
+      } 
+      
+      else {
+        
+        return(NULL)
+      }
       
     })
     
@@ -448,48 +569,60 @@ KaryotypeServer <- function(id) {
       )
     }, server=FALSE)
     
-    
+
     # Volcano Plot #### 
     output$VolcanoPlot <- renderPlotly({
      
       dataframe <- FoldChangeData()
       if(!is.null(dataframe)) {
 
-        if (grepl('Meso',input$Platform)) {
+        p.value.suffix <- ifelse(unique(dataframe$p.value.adjustment.method)=="none","","(adj) ")
+
+        if (grepl('Mass',input$Platform)) {
           dataframe <- dataframe %>%
-            mutate(text = paste0("Cytokine:", Aptamer,
-                                '<br />fold_change:', round(FoldChange,2),
-                                '<br />p-value: ',formatC(p.value, format = "e", digits = 2) 
+            mutate(text = paste0("Protein:", Analyte,
+                                "<br />fold_change:", round(FoldChange,2),
+                                "<br />p-value",p.value.suffix,": ",formatC(p.value, format = "e", digits = 2) 
                                 )
                   )       
         } 
         
         else {       
           dataframe <- dataframe %>%
-            #separate(Analyte, "\\|", into = c("ProtID", "Aptamer"),remove = FALSE) %>%
-            mutate(text = paste0("Aptamer:", Aptamer,
-                                #'<br />Aptamer:', Aptamer,
-                                '<br />fold_change:', round(FoldChange,2),
-                                '<br />p-value: ',formatC(p.value, format = "e", digits = 2)
+            mutate(text = paste0("Aptamer:", Analyte,
+                                "<br />fold_change:", round(FoldChange,2),
+                                "<br />p-value",p.value.suffix,": ",formatC(p.value, format = "e", digits = 2) 
                                 )
                   ) 
         }
       
      
-        a <- dataframe %>% CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Aptamer, pValueThreshold,'Up in positives') 
+        a <- dataframe %>% CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,'Up in COVID-19 +') 
         shinyjs::show("VolcanoContent")
         shinyjs::hide("VolcanoContentEmpty")
 
+        yaxis.title <- paste0("p-value ",p.value.suffix,"(-log<sub>10</sub>)")
+       
         dataframe %>%
           CUSOMShinyHelpers::AddSignificanceGroup(log2Foldchange,`-log10pvalue`, pValueThreshold) %>%
-          CUSOMShinyHelpers::getVolcanoPlot(log2Foldchange,`-log10pvalue`, significanceGroup, text, Aptamer, "CovidStatus") %>%
-          layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = TRUE)) %>%
-          layout(yaxis = list(title="p value (-log<sub>10</sub>)",fixedrange = TRUE)) %>%
+          CUSOMShinyHelpers::getVolcanoPlot(log2Foldchange,`-log10pvalue`, significanceGroup, text, Analyte, "CovidStatus") %>%
+          layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = FALSE)) %>%
+          layout(yaxis = list(title=yaxis.title,fixedrange = FALSE)) %>%
           layout(annotations=a) %>%
           config(
             displayModeBar = TRUE,
             displaylogo = FALSE,
+            toImageButtonOptions = list(
+              format = "svg",
+              filename = paste0(appConfig$applicationName, " - Volcano Plot ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
+              width = session$clientData[[paste0('output_',id,'-VolcanoPlot_width')]],
+              height = session$clientData[[paste0('output_',id,'-VolcanoPlot_height')]]
+            ),
             modeBarButtons = list(
+              list("zoom2d"),
+              list("zoomIn2d"),
+              list("zoomOut2d"),
+              list("resetScale2d"),
               list("toImage") 
             )
           ) %>% onRender("function(el) { overrideModebarDivId(el); }")
@@ -518,7 +651,7 @@ KaryotypeServer <- function(id) {
 
     output$VolcanoPlotTitle <- renderUI({
      
-      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of COVID-19 status on all ',ifelse(grepl('Meso',input$Platform),'cytokines','proteins')),'Please start by setting dataset options below')
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of COVID-19 status on all ',ifelse(grepl('Mass',input$Platform),'proteins','aptamers')),'Please start by setting dataset options below')
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
@@ -573,9 +706,9 @@ KaryotypeServer <- function(id) {
       if (input$Analyte != '') {
       
         r <- shared_FoldChangeData$data(withSelection = FALSE) %>%
-          filter(Aptamer==input$Analyte) %>%
+          filter(Analyte==input$Analyte) %>%
           as_tibble() %>%
-          select(p.value, name = Aptamer, x = log2Foldchange, y = `-log10pvalue`) %>%
+          select(p.value, name = Analyte, x = log2Foldchange, y = `-log10pvalue`) %>%
           as.list()
         
         rv$selectedAnalyte$pvalue <- as.numeric(r$p.value)
@@ -584,8 +717,8 @@ KaryotypeServer <- function(id) {
         rv$selectedAnalyte$name <- r$name
 
         a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
-          mutate(selected_ = case_when(Aptamer==input$Analyte ~ 1)) %>%
-          CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Aptamer, pValueThreshold,'Up in positives') 
+          mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
+          CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,'Up in COVID-19 +') 
         
         plotlyProxy("VolcanoPlot", session) %>%
           plotlyProxyInvoke("relayout", list(annotations = a))
@@ -618,8 +751,6 @@ KaryotypeServer <- function(id) {
       validate(
         need(!is.na(input$Analyte),""),
         need(input$Analyte != "",""),
-        need(input$Analyte != cytokinePlaceholder,""),
-        need(input$Analyte != proteinPlaceholder,""),
         need(input$VolcanoDatasetRefresh[1]>0,"")
 
       )
@@ -629,7 +760,7 @@ KaryotypeServer <- function(id) {
       if(!is.null(dataframe)) {
        
         dataframe %>%
-          filter(Aptamer==input$Analyte) %>%
+          filter(Analyte==input$Analyte) %>%
           mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
                 y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )
           ) %>% CUSOMShinyHelpers::applyGroupCountThreshold(Status, threshold = 10)        
@@ -643,37 +774,6 @@ KaryotypeServer <- function(id) {
         
     shared_AnalyteDataset <- SharedData$new(AnalyteDataset)
 
-    output$SelectedAnalyteRawDataTitle <- renderText({
-      paste0(input$Analyte,' Raw Data')
-    })
-    
-    output$AnalyteDataTable <- DT::renderDataTable({
-      DT::datatable(
-        data= shared_AnalyteDataset$data(withSelection = FALSE),
-        caption = htmltools::tags$caption(
-          style = 'caption-side: bottom; text-align: center;',
-          'Selected Analyte Raw Data: ', htmltools::em('Raw Data Used for Analyte Box-Plot')
-        ),
-        filter = 'top',
-        extensions = c('Buttons','ColReorder','Responsive','Scroller'),
-        options = list(
-          dom = 'Bfrtip',
-          colReorder = TRUE,
-          autowidth=TRUE,
-          deferRender = TRUE,
-          scrollY = 400,
-          scroller = TRUE,
-          scrollX =TRUE,
-          columnDefs = list(list(width = '200px', targets = "_all")),
-          pageLength = 10, 
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
-        ), 
-        rownames = FALSE, 
-        style = 'bootstrap'
-      )
-    }, server=FALSE)
-    
-    
     # Karyotype Box Plot ####
     output$AnalyteBoxPlot <- renderPlotly({
       
@@ -684,19 +784,27 @@ KaryotypeServer <- function(id) {
         shinyjs::show("AnalyteContent")
         shinyjs::show("LogTransform")
         shinyjs::hide("AnalyteContentEmpty")
-
+       
         dataset %>%      
-          mutate(text = case_when(grepl('Meso',input$Platform) ~ paste0(RecordID,'<br />',y), grepl('SOMA',input$Platform) ~ paste0(RecordID,'<br />',y))) %>%
+          mutate(text = paste0(RecordID,'<br />',y)) %>%
           mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
-          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(RecordID,Status,"Negative",y,y_label,text,HighlightGroup,"AnalyteBoxPlot") %>%
+          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(RecordID,Status,"Negative",y,y_label,text,HighlightGroup,"Analyte") %>%
           layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE)) %>%
           config(
             displayModeBar = TRUE,
             displaylogo = FALSE,
+            toImageButtonOptions = list(
+              format = "svg",
+              filename = paste0(appConfig$applicationName, " - Analyte Box Plot ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
+              width = session$clientData[[paste0('output_',id,'-AnalyteBoxPlot_width')]],
+              height = session$clientData[[paste0('output_',id,'-AnalyteBoxPlot_height')]]
+            ),
             modeBarButtons = list(
-              list("toImage")
-              # ,list(plotlyCustomIcons$BoxplotCompareGroup)
-              # ,list(plotlyCustomIcons$BoxplotClear) 
+              list("select2d"), 
+              list("lasso2d"),
+              list("toImage"), 
+              list(plotlyCustomIcons$BoxplotCompareGroup),
+              list(plotlyCustomIcons$BoxplotClear)
             )
           ) %>% onRender("function(el) { overrideModebarDivId(el); }")
      
@@ -727,19 +835,20 @@ KaryotypeServer <- function(id) {
     
       validate(
         need(!is.na(input$Analyte),""),
-        need(input$Analyte != cytokinePlaceholder,""),
-        need(input$Analyte != proteinPlaceholder,""), 
         need(input$Analyte != "","")
       )
- 
-      pval <- rv$selectedAnalyte$pvalue
+
+      p <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+        filter(Analyte==input$Analyte) %>% 
+        ungroup() %>%
+        select(p.value,p.value.adjustment.method) 
       
-      if(!is.na(pval) ) {
+      if(!is.na(p$p.value) ) {
            
         HTML(
           paste0(
             '<h3>Effect of COVID-19 status on ',input$Analyte,' in plasma</h3>',
-            CUSOMShinyHelpers::formatPValue(pval,pValueThreshold)
+            CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method,pValueThreshold)
            
           )
         )
@@ -777,6 +886,437 @@ KaryotypeServer <- function(id) {
       )
     })
     
+
+    observeEvent(event_data("plotly_selected", source = "AnalyteBoxplot") ,{
+
+      e <- event_data("plotly_selected", source = "AnalyteBoxplot")
+     
+      recordIDs <- e %>% select(key) %>% pull()
+
+      if(length(recordIDs) < 10) {
+        
+        rv$groupselectmodalstate <- 1
+        
+        showModal(
+          modalDialog(
+          title = "Cannot Highlight Group",
+          HTML(
+            paste0("You have selected only <b>",length(recordIDs), "</b> records and you must select at least <b><em>10</em></b> points to create a group. <br /><br />
+                  Please try your selection again...")
+               ),
+          easyClose = TRUE,
+          footer = tagList(
+            actionButton(inputId = NS(id,"dismiss_groupselectmodal"),
+                         label = "Dismiss")
+            )
+        )
+      )
+
+      } 
+
+      else {
+
+        # A is empty 
+        if(is.null(input$GroupA)) {
+          
+          rv$lastGroupFilled <- "A"
+          
+          updatePickerInput(
+            session = session,
+            inputId = 'GroupA',
+            selected = recordIDs
+          )
+          
+        }
+        
+        #A is filled, B is empty 
+        else if(!is.null(input$GroupA) & is.null(input$GroupB)) {
+          
+          rv$lastGroupFilled <- "B"
+          
+          updatePickerInput(
+            session = session,
+            inputId = 'GroupB',
+            selected = recordIDs
+          )
+          
+        }
+        
+        # both are filled, 
+        ## check for overlap -- only add net new to the appropriate group
+        else {
+          
+          if(rv$lastGroupFilled == "A") {
+            
+            # A was the last group filled, B is the target 
+            # find the overlapping items in selected and A vectors
+            recordIDs <- setdiff(recordIDs,input$GroupA)
+            
+            updatePickerInput(
+              session = session,
+              inputId = 'GroupB',
+              selected = recordIDs
+            )
+            
+            rv$lastGroupFilled <- "B"
+          } 
+          
+          else {
+            
+            # B was the last group filled, A is the target 
+            # find the overlapping items in selected and B vectors
+            recordIDs <- setdiff(recordIDs,input$GroupB)
+            
+            updatePickerInput(
+              session = session,
+              inputId = 'GroupA',
+              selected = recordIDs
+            )
+            
+            rv$lastGroupFilled <- "A"
+            
+          }
+
+        }
+
+      }
+
+    })
+
+
+    observeEvent(c(input$dismiss_groupselectmodal),{
+     
+      #modal is open and the dismiss button has been clicked 
+      if(rv$groupselectmodalstate == 1 & input$dismiss_groupselectmodal > 0) {
+        
+        # set state of modal back to closed 
+        rv$groupselectmodalstate <- 0
+        
+        removeModal()
+        
+      }
+     
+    })
+     
+    observeEvent(c(input$GroupA,input$GroupB),{
+      ### when 2 groups are filled in --- show the ability to compare groups
+      
+      if(length(input$GroupA) > 0 &  length(input$GroupB) > 0 ) {       
+        
+        if(input$GroupA != "" & input$GroupB != "") {
+          
+          updateSelectizeInput(
+            session = session,
+            inputId = "TutorialName",
+            selected = "BoxplotGroupComparison"
+          )
+          
+          updateSelectizeInput(
+            session = session,
+            inputId = "GroupAnalysisChoice", 
+            selected = "To another analyte"
+          )
+        
+          shinyjs::show("GroupAnalysisOptions")
+        
+        }
+        
+        else {
+          
+          shinyjs::hide("GroupAnalysisOptions")
+          
+        }
+
+      }
+
+      else {
+        
+        shinyjs::hide("GroupAnalysisOptions")
+       
+      }
+
+    })
+
+    observeEvent(c(input$GroupAnalysisChoice),{
+      
+      if(length(input$GroupAnalysisChoice) > 0 & input$GroupAnalysisChoice != "") {
+        # toggle button
+        shinyjs::enable("ShowGroupComparison")
+      } 
+      else {
+        # disable button
+        shinyjs::disable("ShowGroupComparison")
+      }
+    
+      rv$groupComparisonChoice <- input$GroupAnalysisChoice
+      
+      if(input$GroupAnalysisChoice=="To another analyte") {
+       
+        AnalyteComparisionChoices <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+          filter(!Analyte %in% rv$selectedAnalyte$name ) %>%
+          select(Analyte) %>%
+          unique() %>%
+          arrange() %>%
+          pull()
+
+        updateSelectizeInput(
+          session = session, 
+          inputId = "AnalyteComparision",
+          choices = AnalyteComparisionChoices
+        )
+
+        shinyjs::hide("ComorbidityComparision")
+        shinyjs::hide("RunComorbidityComparision")
+        shinyjs::show("AnalyteComparision")
+
+      } 
+
+      else {
+        shinyjs::hide("AnalyteComparision")
+      }
+
+      if(input$GroupAnalysisChoice=="Comorbidity Frequency") {
+        shinyjs::hide("AnalyteComparision")
+        shinyjs::show("ComorbidityComparision")
+        shinyjs::show("RunComorbidityComparision")
+      }
+
+      else {
+        shinyjs::hide("ComorbidityComparision")
+      }
+      
+    })
+    
+    observeEvent(c(input$ComparisionIgnore),{
+      
+      validate(
+        need(input$ComparisionIgnore[1]>0,'')
+      )
+
+      # hide the options, scroll back up. 
+      shinyjs::hide("GroupAnalysisOptions")   
+      shinyjs::runjs(paste0('document.getElementById("',id,'-AnalyteBoxPlot").scrollIntoView(); '))
+       
+    })
+
+    
+    AnalyteComparisonDataset <- reactive({  
+
+      validate(
+        need(input$AnalyteComparision!='','')
+      )
+   
+      shared_dataWithFilters$data(withSelection = FALSE) %>%
+        filter(Analyte==input$AnalyteComparision) %>%
+        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
+               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
+        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
+        filter(!is.na(HighlightGroup))
+      
+    })
+    
+       
+    HighlightGroupComparisonDataset <- reactive({ 
+      
+      validate(
+        need(rv$groupComparisonChoice == input$GroupAnalysisChoice,''), 
+        need(input$GroupAnalysisChoice != "",'')
+      )
+      
+      dataframe <- shared_AnalyteDataset$data(withSelection = FALSE) %>%      
+        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
+               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
+        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
+        filter(!is.na(HighlightGroup))
+      
+      
+      if(grepl('Sex',input$GroupAnalysisChoice)) {
+        
+        return(
+          dataframe %>%
+            group_by(HighlightGroup,Gender) %>%
+            summarise(n=n_distinct(LabID)) %>%
+            inner_join(
+              dataframe  %>%
+                group_by(HighlightGroup) %>%
+                summarise(All=n_distinct(record_id))
+              , on=c("HighlightGroup")
+            ) %>%
+            mutate(Percent = n / All) %>%
+            select(HighlightGroup,Gender,Percent) %>%
+            fillMissingGenderObservations(HighlightGroup,c("A","B")) %>%
+            spread(Gender,Percent) 
+        )
+
+      }
+
+      else if(grepl('Age',input$GroupAnalysisChoice)) {
+        
+        return(
+          dataframe %>%
+            select(HighlightGroup,AgeAtTimeOfVisit)
+          )
+
+      }
+
+      else if(grepl('analyte',input$GroupAnalysisChoice)) {        
+        
+      
+        dataframeB <- AnalyteComparisonDataset()
+       
+        return(rbind(dataframeB ,dataframe))
+        
+      }
+
+      else if(grepl('Comorb',input$GroupAnalysisChoice)) {
+        
+        return(
+          
+          ParticipantConditions %>%
+            filter(Condition %in% input$ComorbidityComparision ) %>%
+            mutate(HasConditionFlag = case_when(HasCondition=='True'~1, HasCondition=='False'~0)) %>%
+            select(LabID,Condition, HasCondition, HasConditionFlag) %>%
+            group_by(LabID) %>%
+            summarise(HasAnyConditionFlag = sum(HasConditionFlag)) %>%
+            mutate(HasAnyConditionFlag = ifelse(HasAnyConditionFlag>0,1,0)) %>%
+            drop_na() %>% 
+            right_join(dataframe,conditionData,by="LabID") %>%
+            select(LabID,HasAnyConditionFlag, HighlightGroup,y,y_label)
+        )
+
+      } 
+      
+      else {
+        return(NULL)
+      }
+
+    }) #, ignoreInit=TRUE)
+      
+    output$AnalyteGroupComparisonPlot <- renderPlotly({
+      
+      validate(
+        need(rv$groupComparisonChoice == input$GroupAnalysisChoice,'')
+      )
+
+      dataframe <- HighlightGroupComparisonDataset()
+      
+      if(grepl('Sex',input$GroupAnalysisChoice)) {
+        
+        p <- dataframe %>%
+          getSelectedRecordsSexPlot(HighlightGroup) %>%
+          layout(yaxis = list(title="Highlighted Group",fixedrange = TRUE)) %>%
+          layout(xaxis = list(fixedrange = TRUE)) %>%
+          layout(title = "Comparison of Sex Distriubtion") 
+      }
+      
+      if(grepl('Age',input$GroupAnalysisChoice)) {
+
+        p <- dataframe %>%
+          getSelectedRecordsAgePlot(HighlightGroup,AgeAtTimeOfVisit) %>%
+          layout(xaxis = list(title="Highlighted Group",fixedrange = TRUE)) %>%
+          layout(yaxis = list(title="Age",fixedrange = TRUE)) %>%
+          layout(title = "Comparison of Age Distriubtion")
+      }
+      
+      if(grepl('analyte',input$GroupAnalysisChoice)) {
+       
+        pval1 <- dataframe %>%
+          filter(Analyte==input$Analyte) %>%
+          getStatTestByKeyGroup(RecordID,Analyte,HighlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+          select(p.value) %>%
+          pull()
+        
+        pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod,pValueThreshold),'</b>')
+        
+        pval2 <- dataframe %>%
+          filter(Analyte==input$AnalyteComparision) %>%
+          getStatTestByKeyGroup(RecordID,Analyte,HighlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+          select(p.value) %>%
+          pull()
+       
+        pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod,pValueThreshold),'</b>')
+
+        p <- dataframe %>%
+          CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,HighlightGroup,Analyte,input$Analyte,y,y_label,text,TRUE,"AnalyteComparison") %>%
+          layout(
+            title = paste0("Comparison Between ",input$Analyte," and ",input$AnalyteComparision,""),
+            annotations = list(
+              list(
+                x = 0.225, 
+                y = 1.05, 
+                font = list(size = 16), 
+                text = pval1text,
+                xref = "paper", 
+                yref = "paper", 
+                xanchor = "center", 
+                yanchor = "bottom", 
+                showarrow = FALSE
+              ), 
+              list(
+                x = 0.775, 
+                y = 1.05, 
+                font = list(size = 16), 
+                text = pval2text,
+                xref = "paper", 
+                yref = "paper", 
+                xanchor = "center", 
+                yanchor = "bottom", 
+                showarrow = FALSE
+              )
+            )
+          ) 
+        
+        
+
+      }
+
+      if(grepl('Comorb',input$GroupAnalysisChoice)) {
+       
+        p <- dataframe %>%
+          mutate(text = paste0(LabID,'<br />', y)) %>%
+          mutate(HasAnyConditionFlag = case_when(HasAnyConditionFlag==0~"Does not have any selected conditions",HasAnyConditionFlag==1~"Has at least 1 selected condition")) %>%
+          getGroupedBoxplot(LabID,HighlightGroup,HasAnyConditionFlag,"Has at least 1 selected condition",y,y_label,text,TRUE,"GroupComorbidityComparison")
+       
+        if(!is.null(p)) {
+          
+          p <- p %>%
+          layout(
+            title = paste0("Commorbidity Frequency Comparison Between Groups") 
+          ) 
+          
+        }
+      
+      }
+      
+      if(!is.null(p)) {
+        
+        p %>%
+          config(
+            displayModeBar = TRUE,
+            displaylogo = FALSE,
+            toImageButtonOptions = list(
+              format = "svg",
+              filename = paste0(appConfig$applicationName, " - Analyte Group Comparison ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
+              width = session$clientData[[paste0('output_',id,'-AnalyteGroupComparisonPlot_width')]],
+              height = session$clientData[[paste0('output_',id,'-AnalyteGroupComparisonPlot_height')]]
+            ),
+            modeBarButtons = list(
+              list("toImage")
+              #list(plotlyCustomIcons$BoxplotClear)
+            )
+          ) %>% onRender("function(el) { overrideModebarDivId(el); }")
+        
+      } 
+      
+      else {
+        
+        getBoxplotForEmptyData(text = "")
+        
+      }
+      
+    })
     
   })
   
