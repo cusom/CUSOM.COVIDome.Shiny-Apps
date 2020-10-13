@@ -13,14 +13,21 @@ namespaces <- as.list(sideBarMenuItems$tabName)
 
 tabs <- as.list(sideBarMenuItems$tabName)    
 
-dropdownlinks <- readRDS('config/dropdownlinks.rds')
+dropdownlinks <- read.csv("config/dropdownlinks.csv")
 
-tutorials<- readRDS('config/tutorials.rds')
+tutorials <- read.csv("config/tutorials.csv")
 
 plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
 
+statTestValues <- c("Kolmogorov-Smirnov Test","Student's t-test","Wilcoxon test")
+statTestNames <- c("ks.test","t.test","wilcox.test")
+statTests <- setNames(statTestNames, statTestValues)
 
-##### Global Constants ##### 
+##adjustmentMethods <- p.adjust.methods
+adjustmentMethodValues <- c("None","Bonferroni","Benjamini-Hochberg (FDR)")
+adjustmentNames <- c("none","bonferroni","BH")
+adjustmentMethods <- setNames(adjustmentNames,adjustmentMethodValues)
+
 pValueThreshold <- 0.05
 
 # suppress warnings  
@@ -30,5 +37,6 @@ options(warn = -1)
 ### paletes
 d21Colors <- c("#BBBDC0","#f2f2f3") 
 t21Colors <- c("#1D4D7C", "#3E99CD") 
+
 
 set.seed(round(runif(1,0,1)*1000000))

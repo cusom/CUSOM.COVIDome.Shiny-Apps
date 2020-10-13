@@ -1,96 +1,53 @@
 sourceData <- readRDS('Data/sourceData.rds')
 
-ParticipantEncounter <- readRDS('Data/ParticipantEncounter.rds')
+recordIDs <- unique(sourceData$RecordID)
 
-Participant <- ParticipantEncounter %>%
-  select(RecordID,Sex,Age,Status) %>% 
-  mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
-  select(RecordID,Sex,AgeGroup,Status) %>%
-  unique()
-
-sourceData <- sourceData %>%
-  select(-c(Status,Sex)) %>%
-  inner_join(Participant,by="RecordID") %>%
-  mutate(MeasuredValue = adjusted_relative_abundance, Measurement = 'adjusted relative abundance') %>%
-  select(-c(adjusted_relative_abundance))
-
-sexes <- Participant %>%
+sexes <- sourceData %>%
   select(Sex) %>%
   unique() %>%
   pull()
 
-ageGroups <- Participant %>%
-  select(AgeGroup) %>%
-  unique() %>%
-  pull()
+ageGroups <- c("All","21 & Over")
 
 analytes <- sourceData %>%
   select(Analyte) %>%
   unique() %>%
   pull()
 
-rm(Participant)
-rm(ParticipantEncounter)
 
 ######################## 
-# msd <- sourceData %>%
-#   filter(grepl('Meso',Platform))
+
+# library(dplyr)
+# sourceData <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
-# soma <- sourceData %>%
-#   inner_join(
-#     sourceData %>%
-#       filter(!grepl('Meso',Platform)) %>%
-#       select(Analyte) %>%
-#       unique() %>%
-#       mutate(k = round(runif(n(),min=0,max=1))) %>%
-#       filter(k == 1) %>%
-#       slice(1:100)
-#     ,by="Analyte") 
+# nrow(sourceData)
+# nrow(ParticipantEncounter)
 # 
-# sourceData <- bind_rows(msd, soma)
+# glimpse(sourceData)
 # 
-# saveRDS(sourceData,'./Data/sourceData.rds')
+# sourceData$Sex <- NULL
+# sourceData$Status <- NULL
+# sourceData$Visit <- NULL
 # 
-# ParticipantEncounter <- sourceData %>%
-#   select(LabID) %>%
-#   unique() %>%
-#   mutate(record_id = str_replace(LabID,'HTP',''))  %>%
-#   mutate(record_id = str_remove(record_id,'[A,B]')) %>%
-#   mutate(l = str_length(record_id)) %>%
-#   mutate(record_id = case_when(l == 4 ~ record_id, l > 4 ~ substr(record_id,0,4))) %>%
-#   select(LabID, record_id) %>%
-#   unique() 
+# ## should return 0 row tibble
+# sourceData %>%
+#   group_by(Analyte,RecordID) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 1)
 # 
+# Participant <- ParticipantEncounter %>%
+#   select(RecordID,Sex,Age,Status) %>%
+#   mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
+#   select(RecordID,Sex,AgeGroup,Status) %>%
+#   unique()
 # 
-# ParticipantEncounter <- ParticipantEncounter %>%
-#   inner_join(
-#     ParticipantEncounter %>%
-#       select(record_id) %>%
-#       unique() %>%
-#       mutate(csf = as.integer(record_id) %% 2) %>%
-#       mutate(CovidStatus = ifelse(csf==0,"Negative","Positive")) %>%
-#       mutate(Age = round(runif(n(),min=5,max=100))) %>%
-#       mutate(AgeGroup = case_when(Age <= 18 ~"Under 18",Age > 18 ~"Over 18")) %>%
-#       mutate(SexFlag = round(runif(n(),min=0,max(1)))) %>%
-#       mutate(Sex = ifelse(SexFlag==0,"Male","Female")) %>%
-#       select(-c(csf,Age,SexFlag)) 
-#     ,by="record_id")
+# sourceData <- sourceData %>%
+#   inner_join(Participant,by="RecordID") %>%
+#   mutate(MeasuredValue = adjusted_relative_abundance, Measurement = 'adjusted relative abundance') %>%
+#   select(-c(adjusted_relative_abundance))
 # 
+# rm(Participant)
+# rm(ParticipantEncounter)
 # 
-# 
-# ParticipantEncounter %>%
-#   group_by(record_id) %>%
-#   summarize(n = n_distinct(Sex)) %>%
-#   filter(n >1)
-# 
-# ParticipantEncounter %>%
-#   group_by(record_id) %>%
-#   summarize(n = n_distinct(AgeGroup)) %>%
-#   filter(n >1)
-# 
-# ParticipantEncounter %>%
-#   group_by(record_id) %>%
-#   summarize(n = n_distinct(CovidStatus)) %>%
-#   filter(n >1)
-# 
-# saveRDS(ParticipantEncounter,'./Data/ParticipantEncounter.rds')
+# saveRDS(sourceData,'Data/sourceData.rds')

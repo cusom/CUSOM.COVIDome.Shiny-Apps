@@ -31,7 +31,8 @@ function clearBoxplotGroups(gd){
 function overrideModebarDivId(el) {
   //id = el.id.split('-',1).toString();
   parentId = el.id;
-  //modebarDivId = el.getElementsByClassName("modebar")[0].id
+  modebarDivId = el.getElementsByClassName("modebar")[0].id
+ 
   el.getElementsByClassName("modebar")[0].id = parentId + "-modebar";
   //console.log(el,id,modebarDivId);
 

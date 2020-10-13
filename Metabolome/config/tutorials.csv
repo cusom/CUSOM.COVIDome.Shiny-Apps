@@ -1,0 +1,20 @@
+,namespace,tutorialName,tutorialTitle,element,intro,position
+1,Karyotype,DatasetOptions,DatasetOptions,#Dataset-Options.sidebar-text,"To render the volcano plot, start by setting dataset options below:",right
+3,Karyotype,DatasetOptions,DatasetOptions,div.form-group:nth-child(3),"Choose a statistical test to compare groups ",right
+4,Karyotype,DatasetOptions,DatasetOptions,div.form-group:nth-child(4),"Optionally, choose an adjustment method to correct for multiple comparisons",right
+5,Karyotype,DatasetOptions,DatasetOptions,#Karyotype-Sex,"Optionally, select Sex(es)",right
+6,Karyotype,DatasetOptions,DatasetOptions,div.form-group:nth-child(6),"Optionally, select an Age Group",right
+7,Karyotype,DatasetOptions,DatasetOptions,div.form-group:nth-child(7),"Optionally choose an Analyte to highlight in the Volcano Plot - if you set this, an arrow will point out the given analyte on the volcano plot",right
+8,Karyotype,DatasetOptions,DatasetOptions,#Karyotype-VolcanoDatasetRefresh,"When you have set your filters, click this button to generate the volcano plot...",right
+9,Karyotype,VolcanoPlot,Volcano,#Karyotype-VolcanoPlot,"Volcano plots are a form of scatterplot used to indicate statistical significance
+                 (p-value<0.05 are above the dashed line) in comparison to the fold change (upregulated genes are to the right of the y axis)",right
+10,Karyotype,VolcanoPlot,Volcano,#Karyotype-VolcanoPlot.plotly.html-widget.html-widget-output.shiny-report-size.shiny-bound-output.js-plotly-plot div.plot-container.plotly div.svg-container svg.main-svg g.cartesianlayer g.subplot.xy g.plot g.scatterlayer.mlayer,"Click on any dot to choose an analyte and highlight it on the volcano plot - this will also create a boxplot showing the difference between Negative and Positive COVID-19 Status for the chosen analyte ",right
+11,Karyotype,VolcanoPlot,Volcano,div.form-group:nth-child(7),"Or, choose an analyte from this dropdown list to highlight it on the volcano plot - this will also create a boxplot showing the difference between Negative and Positive COVID-19 Status for the chosen analyte ",right
+12,Karyotype,VolcanoPlot,Volcano,#Karyotype-VolcanoPlot-modebar,"Use these widgets to zoom, reset views, and download an SVG of the current plot. ",right
+13,Karyotype,BoxPlot,BoxPlot,#Karyotype-AnalyteBoxPlot,This boxplot shows the difference between Negative and Positive COVID-19 Status for the chosen analyte,left
+14,Karyotype,BoxPlot,BoxPlot,#Karyotype-AnalyteBoxPlot-modebar.modebar,Use this widget to interact with this plot,top
+15,Karyotype,BoxPlot,BoxPlot,#Karyotype-AnalyteBoxPlot-modebar > div:nth-child(1) > a:nth-child(1),"Use the Box Select tool to select distinct sets or groups of observations - you must select at least 10 points to create a group. ",top
+16,Karyotype,BoxPlot,BoxPlot,#Karyotype-AnalyteBoxPlot-modebar > div.modebar-group:nth-child(2) > a:nth-child(1),"Alternatively, use the Lasso Select tool to select sets or groups with finer precision",top
+17,Karyotype,BoxPlot,BoxPlot,#Karyotype-AnalyteBoxPlot-modebar > div.modebar-group:nth-child(3) > a:nth-child(1),Use this widget to download a SVG of this plot,top
+18,Karyotype,BoxplotGroupComparison,BoxplotGroupComparison,#Karyotype-AnalyteBoxPlot-modebar > div.modebar-group:nth-child(4) > a:nth-child(1),"Now that you have highlighted 2 distinct groups, click here to see options to compare sets",top
+19,Karyotype,BoxplotGroupComparison,BoxplotGroupComparison,#Karyotype-AnalyteBoxPlot-modebar > div.modebar-group:nth-child(5) > a:nth-child(1),Click this button at any point to clear the group selections from this plot,top
