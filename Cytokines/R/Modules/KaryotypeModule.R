@@ -214,11 +214,11 @@ KaryotypeUI <- function(id) {
                     height = 150,
                     sliderInput(
                       inputId = NS(id,"FoldChange"),
-                      label = "Filter by Fold Change",
+                      label = HTML("Filter by Log<sub>2</sub> Fold Change"),
                       min = 0,
-                      max = 6,
+                      max = 10,
                       step = 0.05,
-                      value = c(0,6)
+                      value = c(0,10)
                     )
                   ), 
                   box(
@@ -227,12 +227,12 @@ KaryotypeUI <- function(id) {
                     radioGroupButtons(
                       inputId =  NS(id,"PValue"),
                       label = "Filter by p-value significance level",
-                      choices = c("all"," * P &le; 0.05 ", " ** P &le; 0.01", " *** P &le; 0.001"),
+                      choices = c("all"," * P &le; 0.05", " ** P &le; 0.01", " *** P &le; 0.001"),
                       individual = FALSE,
                       checkIcon = list(
-                          yes = tags$i(class = "fa fa-circle", style = "color: steelblue"),
-                          no = tags$i(class = "fa fa-circle-o", style = "color: steelblue")
-                          )
+                        yes = tags$i(class = "fa fa-circle", style = "color: steelblue"),
+                        no = tags$i(class = "fa fa-circle-o", style = "color: steelblue")
+                      )
                     )
                   )                     
                 ),
@@ -491,9 +491,9 @@ KaryotypeServer <- function(id) {
     FoldChangeDataTableData <- reactive({
       
       dataframe <- shared_FoldChangeData$data(withSelection = FALSE) %>%
-        mutate(pvalsignificance = case_when(input$PValue=="all" ~"all", p.value <= 0.001 ~ "***", p.value <= 0.01 ~ "**", p.value <= 0.05 ~ "*")) %>%
-        filter(FoldChange >= min(input$FoldChange), FoldChange <= max(input$FoldChange)) %>%
-        filter(pvalsignificance == input$PValue) %>%
+        mutate(pvalueCutoff = case_when(input$PValue=="all" ~ 1 , input$PValue==" * P &le; 0.05" ~ 0.05, input$PValue==" ** P &le; 0.01" ~ 0.01 , input$PValue==" *** P &le; 0.001" ~ 0.001)) %>%
+        filter(log2Foldchange >= min(input$FoldChange), log2Foldchange <= max(input$FoldChange)) %>%
+        filter(p.value <= pvalueCutoff) %>%
         select(Analyte,FoldChange,p.value,p.value.original,`Positive`, `Negative`,log2Foldchange,`-log10pvalue`,method,p.value.adjustment.method)
       
       if(nrow(dataframe) > 0) {
