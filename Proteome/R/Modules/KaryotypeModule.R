@@ -437,7 +437,7 @@ KaryotypeServer <- function(id) {
               
         foldChange <- baseData %>%
           CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, Status, na.rm= TRUE) %>%
-          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, Status, median, "Negative")
+          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, Status, median, "Negative", inf.rm = TRUE )
         
         update_modal_progress(
           value = 2,
@@ -757,8 +757,10 @@ KaryotypeServer <- function(id) {
         dataframe %>%
           filter(Analyte==input$Analyte) %>%
           mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
-                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )
-          ) %>% CUSOMShinyHelpers::applyGroupCountThreshold(Status, threshold = 10)        
+                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )) %>% 
+          # log 2 tranformations can result in Inf -- meaningless, should not count as points in boxplot...
+          filter(y != Inf, y != -Inf) %>%
+          CUSOMShinyHelpers::applyGroupCountThreshold(Status, threshold = 10)        
       }
 
       else {
