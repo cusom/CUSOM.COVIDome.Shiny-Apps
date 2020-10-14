@@ -1,108 +1,69 @@
 sourceData <- readRDS('Data/sourceData.rds')
 
-ParticipantEncounter <- readRDS('Data/ParticipantEncounter.rds')
-
-Participant <- ParticipantEncounter %>%
-  select(RecordID,Sex,Age,Status) %>% 
-  mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
-  select(RecordID,Sex,AgeGroup,Status) %>%
-  unique()
-
-sourceData <- sourceData %>%
-  inner_join(Participant,by="RecordID") %>%  
-  mutate(MeasuredValue = RPKM, Measurement = 'RPKM') %>%
-  select(-c(RPKM)) %>%
-  mutate(CellType = gsub('PAX_','',Specimen_type)) %>%
-  mutate(CellType = gsub('([[:upper:]])', ' \\1', CellType)) %>%
-  mutate(CellType = str_to_title(CellType))
+recordIDs <- unique(sourceData$RecordID)
 
 gene <- sourceData %>%
-  distinct(Gene_name) %>%
-  pull(Gene_name) %>%
+  distinct(Analyte) %>%
+  pull(Analyte) %>%
   sort()
 
 genes <- as.data.table(gene)
 rm(gene)
 
-cellTypes <- sourceData %>%
-  select(CellType) %>%
-  unique() %>%
-  pull()
-  
-
-sexes <- Participant %>%
+sexes <- sourceData %>%
   select(Sex) %>%
   unique() %>%
   pull()
 
-ageGroups <- Participant %>%
-  select(AgeGroup) %>%
-  unique() %>%
-  pull()
-
-
-rm(Participant)
-rm(ParticipantEncounter)
+ageGroups <- c("All","21 & Over")
 
 ######################## 
-# msd <- sourceData %>%
-#   filter(grepl('Meso',Platform))
+# library(dplyr)
+# sourceData <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
-# soma <- sourceData %>%
-#   inner_join(
-#     sourceData %>%
-#       filter(!grepl('Meso',Platform)) %>%
-#       select(Analyte) %>%
-#       unique() %>%
-#       mutate(k = round(runif(n(),min=0,max=1))) %>%
-#       filter(k == 1) %>%
-#       slice(1:100)
-#     ,by="Analyte") 
+# nrow(sourceData)
+# nrow(ParticipantEncounter)
 # 
-# sourceData <- bind_rows(msd, soma)
+# glimpse(sourceData)
 # 
-# saveRDS(sourceData,'./Data/sourceData.rds')
+# sourceData$Specimen_type <- "Whole Blood"
 # 
-# ParticipantEncounter <- sourceData %>%
-#   select(LabID) %>%
+# duplicateGenes <- sourceData %>%
+#   group_by(Gene_name,RecordID) %>%
+#   summarise(n = n()) %>%
+#   filter(n > 1) %>%
+#   ungroup() %>%
+#   select(Gene_name) %>%
 #   unique() %>%
-#   mutate(record_id = str_replace(LabID,'HTP',''))  %>%
-#   mutate(record_id = str_remove(record_id,'[A,B]')) %>%
-#   mutate(l = str_length(record_id)) %>%
-#   mutate(record_id = case_when(l == 4 ~ record_id, l > 4 ~ substr(record_id,0,4))) %>%
-#   select(LabID, record_id) %>%
-#   unique() 
+#   pull()
 # 
+# sourceData <- sourceData %>%
+#   mutate(Analyte = case_when(Gene_name %in% duplicateGenes ~ paste0(Gene_name,'|',gsub('ENSG00000','',EnsemblID)), !Gene_name %in% duplicateGenes ~ Gene_name))
 # 
-# ParticipantEncounter <- ParticipantEncounter %>%
-#   inner_join(
-#     ParticipantEncounter %>%
-#       select(record_id) %>%
-#       unique() %>%
-#       mutate(csf = as.integer(record_id) %% 2) %>%
-#       mutate(CovidStatus = ifelse(csf==0,"Negative","Positive")) %>%
-#       mutate(Age = round(runif(n(),min=5,max=100))) %>%
-#       mutate(AgeGroup = case_when(Age <= 18 ~"Under 18",Age > 18 ~"Over 18")) %>%
-#       mutate(SexFlag = round(runif(n(),min=0,max(1)))) %>%
-#       mutate(Sex = ifelse(SexFlag==0,"Male","Female")) %>%
-#       select(-c(csf,Age,SexFlag)) 
-#     ,by="record_id")
+# rm(duplicateGenes)
 # 
+# ## should return 0 row tibble
+# sourceData %>%
+#   group_by(Analyte,RecordID) %>%
+#   summarise(n=n()) %>%
+#   filter(n > 1)
 # 
+# Participant <- ParticipantEncounter %>%
+#   select(RecordID,Sex,Age,Status) %>%
+#   mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
+#   select(RecordID,Sex,AgeGroup,Status) %>%
+#   unique()
 # 
-# ParticipantEncounter %>%
-#   group_by(record_id) %>%
-#   summarize(n = n_distinct(Sex)) %>%
-#   filter(n >1)
+# sourceData <- sourceData %>%
+#   inner_join(Participant,by="RecordID") %>%
+#   mutate(MeasuredValue = RPKM, Measurement = 'RPKM') %>%
+#   select(-c(RPKM))
 # 
-# ParticipantEncounter %>%
-#   group_by(record_id) %>%
-#   summarize(n = n_distinct(AgeGroup)) %>%
-#   filter(n >1)
+# rm(Participant)
+# rm(ParticipantEncounter)
 # 
-# ParticipantEncounter %>%
-#   group_by(record_id) %>%
-#   summarize(n = n_distinct(CovidStatus)) %>%
-#   filter(n >1)
-# 
-# saveRDS(ParticipantEncounter,'./Data/ParticipantEncounter.rds')
+# saveRDS(sourceData,'Data/sourceData.rds')
+
+
+

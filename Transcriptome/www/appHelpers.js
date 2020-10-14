@@ -1,13 +1,13 @@
 
 function launchTutorial(id,tutorialName){
-    //console.log('tutorial event triggered for ' + nsid +' '+ tutorialName);
+    //console.log('tutorial event triggered for ' + id +' '+ tutorialName);
     Shiny.setInputValue(id +"-TutorialName", tutorialName);
   }
 
 function ShowBoxplotGroupOptions(gd,tutorialName) {
 
   id = gd.id.split('-',1).toString();  
-  console.log(id,tutorialName);
+  //console.log(id,tutorialName);
   comparisonElementName = id + "-" + "GroupAnalysisOptions";
   document.getElementById(comparisonElementName).scrollIntoView();
     
@@ -37,14 +37,3 @@ function overrideModebarDivId(el) {
 
 }
 
-
-
-/*Shiny.addCustomMessageHandler("scrollToElement",
-  function(message) {
-    nameSpace = message[1];
-    elementName = message[2];
-    scollToName = message[3];
-    console.log(message);
-  }
-);
-*/
