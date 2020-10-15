@@ -2,6 +2,11 @@ sourceData <- readRDS('Data/sourceData.rds')
 
 recordIDs <- unique(sourceData$RecordID)
 
+platforms <- sourceData %>%
+  select(Platform) %>%
+  unique() %>%
+  pull()
+
 sexes <- sourceData %>%
   select(Sex) %>%
   unique() %>%
@@ -9,30 +14,53 @@ sexes <- sourceData %>%
 
 ageGroups <- c("All","21 & Over")
 
-analytes <- sourceData %>%
+PlasmaMetabolites <- sourceData %>%
+  filter(Platform=="Plasma") %>%
   select(Analyte) %>%
   unique() %>%
   pull()
 
+RedBloodCellMetabolites <- sourceData %>%
+  filter(Platform=="Red Blood Cells") %>%
+  select(Analyte) %>%
+  unique() %>%
+  pull()
 
 ######################## 
 
 # library(dplyr)
-# sourceData <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# plasma <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# rbc <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
-# nrow(sourceData)
+# nrow(plasma)
+# nrow(rbc)
 # nrow(ParticipantEncounter)
 # 
-# glimpse(sourceData)
+# glimpse(plasma)
+# glimpse(rbc)
 # 
-# sourceData$Sex <- NULL
-# sourceData$Status <- NULL
-# sourceData$Visit <- NULL
+# unique(rbc$Specimen_type)
+# 
+# rbc$Specimen_type <- "Red Blood Cells"
+# 
+# setdiff(colnames(plasma),colnames(rbc))
+# 
+# plasma$Sex <- NULL
+# plasma$Status <- NULL
+# plasma$Visit <- NULL
+# 
+# setdiff(colnames(plasma),colnames(rbc))
+# 
+# sourceData <- rbind(plasma,rbc)
+# colnames(sourceData)[which(colnames(sourceData)=="Specimen_type")] <- "Platform"
+# 
+# nrow(sourceData)
+# nrow(plasma)+nrow(rbc)
 # 
 # ## should return 0 row tibble
 # sourceData %>%
-#   group_by(Analyte,RecordID) %>%
+#   group_by(Platform,Analyte,RecordID) %>%
 #   summarise(n = n()) %>%
 #   filter(n > 1)
 # 
@@ -47,6 +75,8 @@ analytes <- sourceData %>%
 #   mutate(MeasuredValue = adjusted_relative_abundance, Measurement = 'adjusted relative abundance') %>%
 #   select(-c(adjusted_relative_abundance))
 # 
+# rm(plasma)
+# rm(rbc)
 # rm(Participant)
 # rm(ParticipantEncounter)
 # 
