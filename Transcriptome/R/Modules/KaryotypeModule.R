@@ -780,7 +780,7 @@ KaryotypeServer <- function(id) {
         
         HTML(
           paste0(
-            '<h3>Effect of COVID-19 status on ',input$Analyte,' in Whold Blood
+            '<h3>Effect of COVID-19 status on ',input$Analyte,' in Whole Blood
               <span onclick=\"launchTutorial(\'',id,'\',\'BoxPlot\')\"
                 data-toggle="tooltip"
                 data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
