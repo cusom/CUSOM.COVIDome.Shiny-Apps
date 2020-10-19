@@ -215,10 +215,10 @@ KaryotypeUI <- function(id) {
                     sliderInput(
                       inputId = NS(id,"FoldChange"),
                       label = HTML("Filter by Log<sub>2</sub> Fold Change"),
-                      min = 0,
+                      min = -10,
                       max = 10,
                       step = 0.05,
-                      value = c(0,10)
+                      value = c(-10,10)
                     )
                   ), 
                   box(
