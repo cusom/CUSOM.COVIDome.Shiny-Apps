@@ -95,6 +95,11 @@
   padding-left: 10px;
 }
 
+.sidebar-text-overflow {
+  padding-left: 10px;
+  overflow: auto;
+}
+
 .modal-footer {
 	text-align: center;
 }

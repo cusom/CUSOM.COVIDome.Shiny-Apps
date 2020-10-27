@@ -19,7 +19,8 @@ KaryotypeUI <- function(id) {
           )
         )
         ,tags$hr()
-        ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"Platform"),label = "Specimen Type", choices = sort(platforms), selected = platforms[1])
+        #,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"Platform"),label = "Specimen Type", choices = sort(platforms), selected = platforms[1])
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Specimen Type",choices = sort(platforms), selected = platforms[1])
         ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests ,selected = statTests[1])
         ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods, selected = "none")
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
@@ -41,6 +42,17 @@ KaryotypeUI <- function(id) {
         ,tags$br()
         ,actionButton(NS(id,"VolcanoDatasetRefresh"), "Apply filters and generate plot", class = "refresh-btn")
         ,tags$hr()
+        ,shinyjs::hidden(
+          div(
+            id = NS(id,"ExternalLinks"), class="sidebar-text-overflow"
+            ,htmlOutput(NS(id,"ExternalLinksText"))              
+            ,actionLink(inputId = NS(id,"Pubmed"), label = "Pubmed", icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"GeneCards"), label = "GeneCards",icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"GTEx"), label = "GTEx",icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"NCBI"), label = "NCBI",icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"Wikipedia"), label = "Wikipedia", icon = icon("external-link-alt"))
+          )
+        )
         ,shinyjs::hidden(
           selectizeInput(
             NS(id,"TutorialName"),
@@ -243,7 +255,7 @@ KaryotypeUI <- function(id) {
                     id = NS(id,"tabpanel2"),
                     height="auto",
                     width = 11,
-                    DT::dataTableOutput(NS(id,"FoldChangeDataTable"))
+                    withSpinner(DT::dataTableOutput(NS(id,"FoldChangeDataTable")))
                   )
                 )
               )
@@ -272,7 +284,8 @@ KaryotypeServer <- function(id) {
                            pvalue = -1, 
                            xCoordiante = NA, 
                            yCoordinate = NA, 
-                           name = ''
+                           name = '', 
+                           searchName = ''
                          ),
                          tutorialClicks = list(
                            "BoxplotGroupComparison" = 0
@@ -468,6 +481,7 @@ KaryotypeServer <- function(id) {
         remove_modal_progress(session = getDefaultReactiveDomain())
             
         rv$RunRefresh <- 0
+        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
         
         return(finalData)
 
@@ -701,6 +715,8 @@ KaryotypeServer <- function(id) {
         rv$selectedAnalyte$yCoordinate <- as.numeric(r$y)
         rv$selectedAnalyte$name <- r$name
 
+        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
+
         a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
           mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
           CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,'Up in COVID-19 +') 
@@ -708,9 +724,10 @@ KaryotypeServer <- function(id) {
         plotlyProxy("VolcanoPlot", session) %>%
           plotlyProxyInvoke("relayout", list(annotations = a))
         
-        shinyjs::show("LogTransform")
-        shinyjs::hide("GroupAnalysisOptions")
         shinyjs::show("AnalyteContent")
+        shinyjs::show("LogTransform")
+        shinyjs::show("ExternalLinks")
+        shinyjs::hide("AnalyteContentEmpty")
       
       }
       
@@ -723,6 +740,32 @@ KaryotypeServer <- function(id) {
       
     })
 
+    onclick("Pubmed",shinyjs::runjs(paste0("window.open('https://www.ncbi.nlm.nih.gov/pubmed/?term=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("GeneCards", shinyjs::runjs(paste0("window.open('https://www.genecards.org/Search/Keyword?queryString=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("GTEx", shinyjs::runjs(paste0("window.open('https://www.gtexportal.org/home/gene/",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("NCBI", shinyjs::runjs(paste0("window.open('https://www.ncbi.nlm.nih.gov/gene/?term=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("Wikipedia", shinyjs::runjs(paste0("window.open('https://en.wikipedia.org/w/index.php?search=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    output$ExternalLinksText <- renderUI({
+      HTML(
+        paste0(
+        '<h4>Search external sites <br />for ',rv$selectedAnalyte$searchName,'
+          <span 
+            data-toggle="tooltip" 
+            data-placement="auto right" 
+            title="" 
+            class="fas fa-info-circle gtooltip"
+            data-original-title="Click any link below to search external sites for ',rv$selectedAnalyte$searchName,'">
+          </span>
+        </h4>'
+        )
+      )
+    })
+
     ## Reactive Data #### 
     AnalyteDataset <- eventReactive(c(input$VolcanoDatasetRefresh,input$Analyte, input$LogTransform), {
       
@@ -730,7 +773,6 @@ KaryotypeServer <- function(id) {
         need(!is.na(input$Analyte),""),
         need(input$Analyte != "",""),    
         need(input$VolcanoDatasetRefresh[1]>0,"")
-
       )
       
       dataframe <- dataWithFilters() %>%
@@ -763,6 +805,7 @@ KaryotypeServer <- function(id) {
         
         shinyjs::show("AnalyteContent")
         shinyjs::show("LogTransform")
+        shinyjs::show("ExternalLinks")
         shinyjs::hide("AnalyteContentEmpty")
 
         dataset %>%      
@@ -794,6 +837,7 @@ KaryotypeServer <- function(id) {
         
         shinyjs::hide("AnalyteContent")
         shinyjs::hide("LogTransform")
+        shinyjs::hide("ExternalLinks")
         shinyjs::show("AnalyteContentEmpty")
         CUSOMShinyHelpers::getBoxplotForEmptyData(text = "")
         
