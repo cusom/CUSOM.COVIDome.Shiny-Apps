@@ -11,27 +11,29 @@ sexes <- sourceData %>%
 
 ageGroups <- c("All","21 & Over")
 
-protein <- sourceData %>%
+proteins <- sourceData %>%
   filter(grepl('Mass',Platform)) %>%
   distinct(Analyte) %>%
   pull(Analyte) %>%
-  sort()
+  sort() %>%
+  data.table()
 
-proteins <- as.data.table(protein)
-rm(protein)
+setnames(proteins, "Protein : Swiss-Prot ID")
 
-aptamer <- sourceData %>%
+aptamers <- sourceData %>%
   filter(grepl('SOMA',Platform)) %>%
-  distinct(Aptamer) %>%
-  pull(Aptamer) %>%
-  sort()
+  distinct(Analyte) %>%
+  pull(Analyte) %>%
+  sort() %>%
+  data.table()
 
-aptamers <- as.data.table(aptamer)
-rm(aptamer)
+setnames(aptamers, "Protein : SOMAmer ID")
+
 
 ######################## 
-# 
+
 # library(dplyr)
+# library(stringr)
 # MassSpec <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # SOMA <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
@@ -59,13 +61,13 @@ rm(aptamer)
 # setdiff(colnames(SOMA),colnames(MassSpec))
 # 
 # SOMA$Description <- paste0(SOMA$Analyte,': ',SOMA$Description)
-# SOMA$Analyte <- SOMA$Aptamer
+# SOMA$Analyte <- str_replace(SOMA$Aptamer, "\\.", ":")  #SOMA$Aptamer
 # 
 # MassSpec$Analyte <- paste0(MassSpec$Analyte,':',MassSpec$UniProt)
 # 
 # sourceData <- bind_rows(SOMA,MassSpec)
 # 
-# ## sanity checks 
+# ## sanity checks
 # ## should == 0
 # (nrow(MassSpec) + nrow(SOMA)) - nrow(sourceData)
 # 
@@ -74,7 +76,7 @@ rm(aptamer)
 #   group_by(Platform) %>%
 #   summarise(n = n())
 # 
-# ## should return 0 row tibble 
+# ## should return 0 row tibble
 # sourceData %>%
 #   group_by(Platform,Analyte,RecordID) %>%
 #   summarise(n = n()) %>%
