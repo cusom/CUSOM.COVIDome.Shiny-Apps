@@ -31,11 +31,11 @@ RedBloodCellMetabolites <- sourceData %>%
 # library(dplyr)
 # plasma <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # rbc <- read.delim(file.choose(),stringsAsFactors=FALSE)
-# ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# metadata <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
 # nrow(plasma)
 # nrow(rbc)
-# nrow(ParticipantEncounter)
+# nrow(metadata)
 # 
 # glimpse(plasma)
 # glimpse(rbc)
@@ -64,7 +64,7 @@ RedBloodCellMetabolites <- sourceData %>%
 #   summarise(n = n()) %>%
 #   filter(n > 1)
 # 
-# Participant <- ParticipantEncounter %>%
+# Participant <- metadata %>%
 #   select(RecordID,Sex,Age,Status) %>%
 #   mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
 #   select(RecordID,Sex,AgeGroup,Status) %>%
@@ -78,6 +78,6 @@ RedBloodCellMetabolites <- sourceData %>%
 # rm(plasma)
 # rm(rbc)
 # rm(Participant)
-# rm(ParticipantEncounter)
+# rm(metadata)
 # 
 # saveRDS(sourceData,'Data/sourceData.rds')

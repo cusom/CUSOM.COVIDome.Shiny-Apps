@@ -46,14 +46,10 @@ OverviewServer <- function(id) {
   
           <div class="overviewHeader">OVERVIEW</div>
           <div class="overviewBodyText">
-          <a href="https://www.nih.gov/news-events/nih-research-matters/revealing-human-proteome" target="_blank">
-            <b>Proteomics</b></a> is the study of all proteins produced by a tissue or organism. 
-            In biology, proteins are the functional molecules that result when a gene is expressed and that perform most of the biological processes needed for life. 
-            Many factors can affect the expression and function of proteins, and abnormal protein expression or function can play a role in health and disease. 
-            Therefore, by measuring the levels of many different proteins (i.e. the &ldquo;proteome&rdquo;), 
-            we can understand differences in protein levels and explore how those differences may affect health conditions. 
-            We used proteomics to compare proteins in plasma from blood between people with and without Down syndrome; 
-            we also made this comparison in people with Down syndrome with and without various co-occurring health conditions.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+          Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
           </div>
   
           <br />

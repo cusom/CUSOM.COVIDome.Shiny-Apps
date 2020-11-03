@@ -19,14 +19,9 @@ tutorials <- read.csv("config/tutorials.csv")
 
 plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
 
-statTestValues <- c("Kolmogorov-Smirnov Test","Student's t-test","Wilcoxon test")
-statTestNames <- c("ks.test","t.test","wilcox.test")
-statTests <- setNames(statTestNames, statTestValues)
+statTests <- CUSOMShinyHelpers::getStatTestByKeyGroup.methods
 
-##adjustmentMethods <- p.adjust.methods
-adjustmentMethodValues <- c("None","Bonferroni","Benjamini-Hochberg (FDR)")
-adjustmentNames <- c("none","bonferroni","BH")
-adjustmentMethods <- setNames(adjustmentNames,adjustmentMethodValues)
+adjustmentMethods <- c("none","Bonferroni","Benjamini-Hochberg (FDR)")
 
 pValueThreshold <- 0.05
 

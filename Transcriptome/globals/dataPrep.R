@@ -20,10 +20,10 @@ ageGroups <- c("All","21 & Over")
 ######################## 
 # library(dplyr)
 # sourceData <- read.delim(file.choose(),stringsAsFactors=FALSE)
-# ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# metadata <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
 # nrow(sourceData)
-# nrow(ParticipantEncounter)
+# nrow(metadata)
 # 
 # glimpse(sourceData)
 # 
@@ -49,7 +49,7 @@ ageGroups <- c("All","21 & Over")
 #   summarise(n=n()) %>%
 #   filter(n > 1)
 # 
-# Participant <- ParticipantEncounter %>%
+# Participant <- metadata %>%
 #   select(RecordID,Sex,Age,Status) %>%
 #   mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
 #   select(RecordID,Sex,AgeGroup,Status) %>%
@@ -61,7 +61,7 @@ ageGroups <- c("All","21 & Over")
 #   select(-c(RPKM))
 # 
 # rm(Participant)
-# rm(ParticipantEncounter)
+# rm(metadata)
 # 
 # saveRDS(sourceData,'Data/sourceData.rds')
 

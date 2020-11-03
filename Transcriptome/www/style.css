@@ -11,7 +11,8 @@
 
 .btn-default {
     background-color: #f4f4f4;
-    border-color:#fff;
+    border-color: #3c8dbc;
+    border-width: medium;
 }
 
 
@@ -28,7 +29,7 @@
 	width: 100%;
 	color: #fff;
 	text-align: center;
-	font-size: 28px;
+	font-size: 24px;
 	font-family: 'Noto Serif', serif;
 	border-color: #3c8dbc;
 	background-size: cover;
@@ -42,7 +43,7 @@
 	width: 100%;
 	color: #fff;
 	text-align: center;
-	font-size: 28px;
+	font-size: 24px;
 	font-family: 'Noto Serif', serif;
 	border-color: #fff;
 	border-width: medium;

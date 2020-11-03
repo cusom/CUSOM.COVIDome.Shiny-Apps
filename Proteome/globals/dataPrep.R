@@ -31,16 +31,16 @@ setnames(aptamers, "Protein : SOMAmer ID")
 
 
 ######################## 
-
+# 
 # library(dplyr)
 # library(stringr)
 # MassSpec <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # SOMA <- read.delim(file.choose(),stringsAsFactors=FALSE)
-# ParticipantEncounter <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# metadata <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
 # nrow(MassSpec)
 # nrow(SOMA)
-# nrow(ParticipantEncounter)
+# nrow(metadata)
 # 
 # setdiff(colnames(MassSpec),colnames(SOMA))
 # setdiff(colnames(SOMA),colnames(MassSpec))
@@ -53,7 +53,7 @@ setnames(aptamers, "Protein : SOMAmer ID")
 # MassSpec$Specimen_type <- "Plasma"
 # MassSpec$Aptamer <- NA
 # MassSpec$GeneSymbol <- NA
-# MassSpec$Platform <- "Mass Spec"
+# MassSpec$Platform <- "Mass spectrometry"
 # colnames(SOMA)[which(colnames(SOMA)=="TargetFullName")] <- "Description"
 # colnames(MassSpec)[which(colnames(MassSpec)=="swissprotID")] <- "UniProt"
 # 
@@ -85,7 +85,7 @@ setnames(aptamers, "Protein : SOMAmer ID")
 # rm(SOMA)
 # rm(MassSpec)
 # 
-# Participant <- ParticipantEncounter %>%
+# Participant <- metadata %>%
 #   select(RecordID,Sex,Age,Status) %>%
 #   mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
 #   select(RecordID,Sex,AgeGroup,Status) %>%
@@ -97,6 +97,6 @@ setnames(aptamers, "Protein : SOMAmer ID")
 #   select(-c(adjusted_relative_abundance))
 # 
 # rm(Participant)
-# rm(ParticipantEncounter)
+# rm(metadata)
 # 
 # saveRDS(sourceData,'Data/sourceData.rds')
