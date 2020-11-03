@@ -20,8 +20,8 @@ KaryotypeUI <- function(id) {
         )
         ,tags$hr()
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Platform",choices = sort(platforms), selected = platforms[1])
-        ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests ,selected = statTests[1])
-        ,CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods, selected = "none")
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests, selected = statTests[1], inline=FALSE )
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods ,selected = adjustmentMethods[1], inline=FALSE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups[1], inline=TRUE )
         ,selectizeInput(
@@ -441,7 +441,7 @@ KaryotypeServer <- function(id) {
         
         update_modal_progress(
           value = 2,
-          text = paste0("Running ",names(which(statTests == input$StatTest)),"..."),
+          text = paste0("Running ",input$StatTest,"..."),
           session = shiny::getDefaultReactiveDomain()
         )
         
@@ -451,7 +451,7 @@ KaryotypeServer <- function(id) {
         
         update_modal_progress(
           value = 3,
-          text = ifelse(input$AdjustmentMethod=="none",paste0("Running ",names(which(statTests == input$StatTest)),"..."),paste0("Adjusting P Values using ",input$AdjustmentMethod," method...")),
+          text = ifelse(input$AdjustmentMethod=="none",paste0("Running ",input$StatTest,"..."),paste0("Adjusting P Values using ",input$AdjustmentMethod," method...")),
           session = shiny::getDefaultReactiveDomain()
         )
         
