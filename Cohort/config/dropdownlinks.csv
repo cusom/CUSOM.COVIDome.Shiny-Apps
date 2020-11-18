@@ -1,0 +1,7 @@
+,label,imageURL,link,IsCurrentApplication
+1,Cohort,,,1
+2,Transcriptome,,https://covidome.shinyapps.io/Transcriptome/,0
+3,Proteome,,https://covidome.shinyapps.io/Proteome/,0
+4,Cytokines,,https://covidome.shinyapps.io/Cytokines/,0
+5,Metabolome,,https://covidome.shinyapps.io/Metabolome/,0
+6,Immune Map,,https://covidome.shinyapps.io/ImmuneMaps/,0
