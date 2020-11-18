@@ -7,7 +7,7 @@ function launchTutorial(id,tutorialName){
 function ShowBoxplotGroupOptions(gd,tutorialName) {
 
   id = gd.id.split('-',1).toString();  
-  console.log(id,tutorialName);
+  //console.log(id,tutorialName);
   comparisonElementName = id + "-" + "GroupAnalysisOptions";
   document.getElementById(comparisonElementName).scrollIntoView();
     
@@ -44,5 +44,4 @@ function DisablePlotData(plotName) {
       traces[i].visible = false;
     }
 }
-
 

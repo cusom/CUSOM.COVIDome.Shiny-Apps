@@ -1,7 +1,7 @@
-"","label","imageURL","link","IsCurrentApplication"
-"1","Cohort","https://images.squarespace-cdn.com/content/v1/56e888d4ab48de7e9d43699f/1568392717309-GC9CTNMMS42NYJC59ONS/ke17ZwdGBToddI8pDm48kN-iCp0H8EbLNb85VXvIfntZw-zPPgdn4jUwVcJE1ZvWQUxwkmyExglNqGp0IvTJZUJFbgE-7XRK3dMEBRBhUpwJ9HQgZp3oxeBiIm-pcS5SfS-zts_3xPPiL94bG8Dub8cC2USuOBCliuH5f7Cfki4/Clinical+Data+cover+photo.png","","0"
-"2","Transcriptome","https://images.squarespace-cdn.com/content/v1/56e888d4ab48de7e9d43699f/1568394874995-U34IA2EKNWA8MARS2K1I/ke17ZwdGBToddI8pDm48kN-iCp0H8EbLNb85VXvIfntZw-zPPgdn4jUwVcJE1ZvWQUxwkmyExglNqGp0IvTJZUJFbgE-7XRK3dMEBRBhUpwJ9HQgZp3oxeBiIm-pcS5SfS-zts_3xPPiL94bG8Dub8cC2USuOBCliuH5f7Cfki4/Transcriptome+cover+photo.png","https://covidome.shinyapps.io/Transcriptome/","0"
-"3","Proteome","https://images.squarespace-cdn.com/content/v1/56e888d4ab48de7e9d43699f/1568394752389-QETFBXK0P0U3JWW08H26/ke17ZwdGBToddI8pDm48kN-iCp0H8EbLNb85VXvIfntZw-zPPgdn4jUwVcJE1ZvWQUxwkmyExglNqGp0IvTJZUJFbgE-7XRK3dMEBRBhUpzlOK77aqHYkRPGwHpLkjZlw3V4H-14niY0TyEHjuACLFt21bxqjCTv3aXyR5TUnHA/Proteome+cover+photo_COMPRESSED.png","https://covidome.shinyapps.io/Proteome/","0"
-"4","Cytokines","https://images.squarespace-cdn.com/content/v1/56e888d4ab48de7e9d43699f/1568394752389-QETFBXK0P0U3JWW08H26/ke17ZwdGBToddI8pDm48kN-iCp0H8EbLNb85VXvIfntZw-zPPgdn4jUwVcJE1ZvWQUxwkmyExglNqGp0IvTJZUJFbgE-7XRK3dMEBRBhUpzlOK77aqHYkRPGwHpLkjZlw3V4H-14niY0TyEHjuACLFt21bxqjCTv3aXyR5TUnHA/Proteome+cover+photo_COMPRESSED.png","","1"
-"5","Metabolome","https://images.squarespace-cdn.com/content/v1/56e888d4ab48de7e9d43699f/1568394078872-WNE6UBLWHJ7APSS0HE4A/ke17ZwdGBToddI8pDm48kN-iCp0H8EbLNb85VXvIfntZw-zPPgdn4jUwVcJE1ZvWQUxwkmyExglNqGp0IvTJZUJFbgE-7XRK3dMEBRBhUpwJ9HQgZp3oxeBiIm-pcS5SfS-zts_3xPPiL94bG8Dub8cC2USuOBCliuH5f7Cfki4/Metabolome+cover+photo.png","https://covidome.shinyapps.io/Metabolome/","0"
-"6","Immune Map","https://images.squarespace-cdn.com/content/v1/56e888d4ab48de7e9d43699f/1568394816632-4CG9N6IDKK7Y83VD5ABM/ke17ZwdGBToddI8pDm48kN-iCp0H8EbLNb85VXvIfntZw-zPPgdn4jUwVcJE1ZvWQUxwkmyExglNqGp0IvTJZUJFbgE-7XRK3dMEBRBhUpwJ9HQgZp3oxeBiIm-pcS5SfS-zts_3xPPiL94bG8Dub8cC2USuOBCliuH5f7Cfki4/Immune+Map+cover+photo.png","https://covidome.shinyapps.io/ImmuneMaps/","0"
+,label,imageURL,link,IsCurrentApplication
+1,Cohort,,https://covidome.shinyapps.io/Cohort/,0
+2,Transcriptome,,https://covidome.shinyapps.io/Transcriptome/,0
+3,Proteome,,https://covidome.shinyapps.io/Proteome/,0
+4,Cytokines,,,1
+5,Metabolome,,https://covidome.shinyapps.io/Metabolome/,0
+6,Immune Map,,https://covidome.shinyapps.io/ImmuneMaps/,0

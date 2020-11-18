@@ -5,7 +5,7 @@ appConfig <- readRDS('config/appConfig.rds')
 
 appConfig$footerHTML <- CUSOMShinyHelpers::getSOMStandardFooter('images/medicine_h_clr.png')
 
-ApplicationURL <- ifelse(appConfig$Environment=="Production",'','')
+ApplicationURL <- ifelse(appConfig$Environment=="Production",appConfig$applicationURL,'')
 
 sideBarMenuItems <- readRDS('config/sidebarMenuItems.rds')
 

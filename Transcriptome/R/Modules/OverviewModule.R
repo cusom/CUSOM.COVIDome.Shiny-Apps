@@ -33,64 +33,41 @@ OverviewServer <- function(id) {
     output$Overview <- renderUI({  
       HTML(
         paste0(
-          '
-         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-          "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+          '<br /><br />
   
-          <body>
-            
-            <center><img src="./images/medicine_h_clr.png" width="600" height="auto"></center>
-            
-          <br /><br />
-  
+          <div class="overviewHeader">WHAT IS THE TRANSCRIPTOME?</div>
+          <p>
+            <a href="https://www.genome.gov/about-genomics/fact-sheets/Transcriptome-Fact-Sheet" target="_blank"><b>Transcriptomics</b></a> is the study of ribonucleic acid (RNA), a molecule that is produced in a cell when a gene is turned on. 
+            While the DNA that encodes all genes is the same in every cell, different types of cells (e.g. a heart cell versus a liver cell) may turn certain genes on 
+            and off at different times. Other factors may also affect what genes are turned on and off, such as age, gender, and diseases or other health conditions. 
+            Therefore, by measuring the levels of all RNAs (i.e. the "transcriptome"), we can understand what genes are expressed in a variety of situations. 
+            We used transcriptomics to compare gene expression in the bloodstream of people with and without a confirmed diagnosis of COVID19.
+          </p>
+          <br />
+
           <div class="overviewHeader">OVERVIEW</div>
-          <div class="overviewBodyText">
-          
-          </div>
-  
-          <br />
-          <div class="overviewHeader">HEADING 2</div>
-          <div class="overviewBodyText">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-          Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </div>
-          <br />
-          <div class="overviewBodyText"><b>Effect of covid 19.</b>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-          Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </div>
-  
-          
+          <p>
+            This dashboard presents transcriptome data generated from whole blood. 
+            The data are searchable by <a href="./Transcriptome Gene Names.pdf" target="_blank"><b>gene name</b></a> and can be filtered by age group and sex. 
+            Users can select different statistical tests and adjustment methods for multiple hypotheses correction. 
+          </p>
   
           <br />
           <div class="overviewHeader">METHODS</div>
-          <div class="overviewBodyText">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </div>
-  
-          <br />
-          <div class="overviewHeader">PUBLICATIONS</div> 
-          <div class="overviewBodyText">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-          Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </div>
+          <p>
+            Blood was drawn into a PAXgene RNA tubes, RNA was extracted, and next-generation sequencing libraries were generated 
+            and subjected to deep sequencing at the 
+            <a href="https://medschool.cuanschutz.edu/colorado-cancer-center/research/shared-resources/genomics" target="_blank">
+              <b>Genomics and Microarray Shared Resource of the University of Colorado.</b></a> 
+          </p>
   
           <br /><br />
-  
-          </body>
+
         ')
       )
     })
     
+      
   })
   
 }
