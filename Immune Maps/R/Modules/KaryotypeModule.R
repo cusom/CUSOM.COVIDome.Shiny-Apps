@@ -375,7 +375,7 @@ KaryotypeServer <- function(id) {
         session = session,
         inputId = "Analyte",
         label = rv$analyteLabel,
-        choices = analyteChoices
+        choices = sort(analyteChoices)
       )
 
       updateSelectizeInput(
@@ -403,12 +403,12 @@ KaryotypeServer <- function(id) {
       shinyjs::hide("ExternalLinks")
      
       
-      if(rv$Platform != input$Platform & rv$Platform != "") {
-       
-        shinyjs::addClass(id="VolcanoContent", class="grayout")
-        shinyjs::runjs(paste0("DisablePlotData('",id,"VolcanoPlot');"))
-        
-      }
+      # if(rv$Platform != input$Platform & rv$Platform != "") {
+      #  
+      #   shinyjs::addClass(id="VolcanoContent", class="grayout")
+      #   shinyjs::runjs(paste0("DisablePlotData('",id,"VolcanoPlot');"))
+      #   
+      # }
       
       
       
@@ -420,7 +420,7 @@ KaryotypeServer <- function(id) {
     })
         
     # BASE DATASET WITH UI FILTERS APPLIED 
-    dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh),{    
+    dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh, input$Platform),{    
       
       dataframe <- sourceData %>%
         filter(Platform==input$Platform) %>%
@@ -440,12 +440,12 @@ KaryotypeServer <- function(id) {
     
     shared_dataWithFilters <- SharedData$new(dataWithFilters)
 
-    FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh),{
+    FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh, input$Platform),{
       
       baseData <- dataWithFilters()
      
       if(!is.null(baseData)) { 
-
+      
         show_modal_progress_circle(
             value = 0,
             text = "Generating Volcano Plot...",
@@ -464,7 +464,7 @@ KaryotypeServer <- function(id) {
           text = "Calculating Fold Change...",
           session = shiny::getDefaultReactiveDomain()
         )
-              
+        
         foldChange <- baseData %>%
           CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, Status, na.rm = TRUE) %>%
           CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, Status, median, "Negative",inf.rm = TRUE)
@@ -486,8 +486,15 @@ KaryotypeServer <- function(id) {
         )
         
         finalData <- inner_join(foldChange, statsData, by="Analyte") %>%
-          mutate(selected_ = ifelse(Analyte==input$Analyte,1,0))
-
+          mutate(selected_ = ifelse(Analyte==input$Analyte,1,0)) %>%
+          inner_join(
+            sourceData %>%
+            filter(Platform==input$Platform) %>%
+            select(Platform,"Analyte" = Cell_population,Definition) %>%
+            unique(), 
+            by="Analyte")
+        
+        
         update_modal_progress(
           value = 4,
           text = "Finalizing plot...",
@@ -621,9 +628,11 @@ KaryotypeServer <- function(id) {
       if(!is.null(dataframe)) {
 
         p.value.suffix <- ifelse(unique(dataframe$p.value.adjustment.method)=="none","","(adj) ")
-
+        
+       
         dataframe <- dataframe %>%
           mutate(text = paste0("Cell Population:", Analyte,
+                               "<br />Definition:",Definition,
                                 "<br />fold_change:", round(FoldChange,2),
                                 "<br />p-value",p.value.suffix,": ",formatC(p.value, format = "e", digits = 2) 
                                 )
@@ -751,7 +760,7 @@ KaryotypeServer <- function(id) {
         rv$selectedAnalyte$name <- r$name
 
         rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\|", simplify = TRUE)[1]
-
+       
         a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
           mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
           CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,'Up in COVID-19 +') 
@@ -896,7 +905,7 @@ KaryotypeServer <- function(id) {
         ungroup() %>%
         select(p.value,p.value.adjustment.method) 
       
-      if(!is.na(p$p.value) ) {
+      if(nrow(p) > 0) {
            
         HTML(
           paste0(
@@ -946,9 +955,9 @@ KaryotypeServer <- function(id) {
     })
     
 
-    observeEvent(event_data("plotly_selected", source = "AnalyteBoxplot") ,{
+    observeEvent(event_data("plotly_selected", source = "AnalyteBoxPlot") ,{
 
-      e <- event_data("plotly_selected", source = "AnalyteBoxplot")
+      e <- event_data("plotly_selected", source = "AnalyteBoxPlot")
      
       recordIDs <- e %>% select(key) %>% pull()
 

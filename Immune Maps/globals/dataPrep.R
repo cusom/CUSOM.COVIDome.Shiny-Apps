@@ -1,6 +1,13 @@
 sourceData <- readRDS('Data/sourceData.rds')
 
-Platforms <- sort(unique(sourceData$Platform))
+Platforms <- sourceData %>%
+  group_by(Platform) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  select(Platform) %>%
+  ungroup() %>%
+  pull()
+  #sort(unique(sourceData$Platform))
 
 recordIDs <- unique(sourceData$RecordID)
 
@@ -12,7 +19,7 @@ sexes <- sourceData %>%
 ageGroups <- c("All","21 & Over")
 
 ######################## 
-
+# 
 # library(dplyr)
 # sourceData <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # metadata <- read.delim(file.choose(),stringsAsFactors=FALSE)
@@ -22,8 +29,8 @@ ageGroups <- c("All","21 & Over")
 # glimpse(sourceData)
 # 
 # sourceData <- sourceData %>%
-#   mutate("Measurement" = "percent") %>%
-#   rename("Platform" = Lineage, "Analyte" = Cell_population, "MeasuredValue" = percent)
+#   mutate("Analyte" = Cell_population, "Measurement" = "percent") %>%
+#   rename("Platform" = Lineage, "MeasuredValue" = Percent)
 # 
 # ## should return 0 row tibble
 # sourceData %>%
