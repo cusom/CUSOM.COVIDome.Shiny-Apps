@@ -914,9 +914,9 @@ KaryotypeServer <- function(id) {
     })
     
 
-    observeEvent(event_data("plotly_selected", source = "AnalyteBoxplot") ,{
+    observeEvent(event_data("plotly_selected", source = "AnalyteBoxPlot") ,{
 
-      e <- event_data("plotly_selected", source = "AnalyteBoxplot")
+      e <- event_data("plotly_selected", source = "AnalyteBoxPlot")
      
       recordIDs <- e %>% select(key) %>% pull()
 
