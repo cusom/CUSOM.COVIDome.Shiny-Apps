@@ -17,6 +17,8 @@ config.yml
 # archived projects 
 __archive/*
 
+# development versions
+__development/*
 
 
 ## Ignore Visual Studio temporary files, build results, and
