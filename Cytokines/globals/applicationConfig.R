@@ -1,21 +1,21 @@
+# suppress warnings  
+storeWarn <- getOption("warn")
+options(warn = -1)
+
 # get App metadata
-ApplicationId <- config::get(file = "config/config.yml", "applicationID")
-
-appConfig <- readRDS('config/appConfig.rds')
-
-appConfig$footerHTML <- CUSOMShinyHelpers::getSOMStandardFooter('images/medicine_h_clr.png')
+appConfig <- read_tsv('./config/appConfig.tsv')
 
 ApplicationURL <- ifelse(appConfig$Environment=="Production",appConfig$applicationURL,'')
 
-sideBarMenuItems <- readRDS('config/sidebarMenuItems.rds')
+sideBarMenuItems <- read_tsv('./config/sideBarMenuItems.tsv') %>% filter(IsHidden == 0) %>% select(-c(IsHidden))
 
 namespaces <- as.list(sideBarMenuItems$tabName) 
 
 tabs <- as.list(sideBarMenuItems$tabName)    
 
-dropdownlinks <- read.csv("config/dropdownlinks.csv")
+dropdownlinks <- read_tsv("./config/dropdownlinks.tsv")
 
-tutorials <- read.csv("config/tutorials.csv")
+tutorials <- read_tsv("./config/tutorials.tsv")
 
 plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
 
@@ -25,13 +25,8 @@ adjustmentMethods <- c("none","Bonferroni","Benjamini-Hochberg (FDR)")
 
 pValueThreshold <- 0.05
 
-# suppress warnings  
-storeWarn <- getOption("warn")
-options(warn = -1)
-
-### paletes
-d21Colors <- c("#BBBDC0","#f2f2f3") 
-t21Colors <- c("#1D4D7C", "#3E99CD") 
 
 
 set.seed(round(runif(1,0,1)*1000000))
+
+
