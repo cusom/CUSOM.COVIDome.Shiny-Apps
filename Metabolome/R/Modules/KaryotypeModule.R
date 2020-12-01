@@ -260,10 +260,6 @@ KaryotypeUI <- function(id) {
               )
             )
           )
-        ),
-        tags$hr(),
-        fluidRow(
-          HTML(appConfig$footerHTML)
         )
     )
   ) 
@@ -496,7 +492,7 @@ KaryotypeServer <- function(id) {
 
     # change the fold change tab title based on platform
     output$FoldChangeDataTitle <- renderUI ({
-      paste0(input$Platform,' Fold Change Raw Data')
+      paste0(input$Platform,' Fold Change Data')
     })
     
     shared_FoldChangeData <- SharedData$new(FoldChangeData)
@@ -809,8 +805,9 @@ KaryotypeServer <- function(id) {
 
         dataset %>%      
           mutate(text = paste0(RecordID,'<br />',y)) %>%
-          mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
-          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(RecordID,Status,"Negative",y,y_label,text,HighlightGroup,"Analyte") %>%
+          mutate(highlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
+          select(key=RecordID,group=Status,value=y,valueLabel=y_label,text, highlightGroup) %>%
+          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(key,group,"Negative",value,valueLabel,text,highlightGroup,plotName="Analyte") %>%
           layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE)) %>%
           config(
             displayModeBar = TRUE,

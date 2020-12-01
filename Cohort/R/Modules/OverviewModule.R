@@ -15,12 +15,10 @@ OverviewUI <- function(id) {
               id = NS(id,"Overview"),
               height= "auto",
               width = "auto", 
-              withSpinner(uiOutput(NS(id,"Overview")),type = 4),
-              HTML(appConfig$footerHTML)
+              withSpinner(uiOutput(NS(id,"Overview")),type = 4)
             )
           )
         )
-       
       )
   )
   

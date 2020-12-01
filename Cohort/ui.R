@@ -3,9 +3,9 @@ ui <- dashboardPagePlus(
   title = appConfig$applicationName,
   header = dashboardHeaderPlus(
     title = tags$a(href=ApplicationURL,
-                     tags$img(src='./images/logo.png', height='30'),
-                     appConfig$projectName, 
-                     style = "color:#000000;"), 
+                   tags$img(src='./images/logo.png', height='30'),
+                   appConfig$projectName, 
+                   style =  "color:#000000;"),
     titleWidth =  appConfig$titleWidth,
     left_menu = CUSOMShinyHelpers::createApplicationLinks(dropdownlinks)
   ),
@@ -19,18 +19,25 @@ ui <- dashboardPagePlus(
       ,tags$br()
       ,map(namespaces, CUSOMShinyHelpers::createSidebarInputs)
       )
-  ),
+    ),
   
   body = dashboardBody(
     tags$head(includeHTML(("www/google-analytics.html"))),
     tags$head(HTML('<meta name="robots" content="noindex">')),
     tags$head(HTML("<script type='text/javascript' src='appHelpers.js'></script>")),
+    tags$style("@import url(https://use.fontawesome.com/releases/v5.15.1/css/all.css);"),
     tags$head(tags$link(rel="stylesheet",type = "text/css", href = "style.css")),
     tags$link(rel = "icon", href = "favicon.png"),
     useShinyjs(),
     introjsUI(),
     do.call(tabItems,map(namespaces, CUSOMShinyHelpers::createTabOutput))
   ), 
-  skin = "blue-light"
+  footer = dashboardFooter(
+    HTML(
+      CUSOMShinyHelpers::getSOMStandardFooter('images/brand_config_amc03.png','Created in partnership between the Office of the Vice Chancellor for Research and the School of Medicine')
+      )
+    ),
+  skin = "blue-light" 
 )
+  
   
