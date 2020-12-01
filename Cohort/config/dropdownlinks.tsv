@@ -1,0 +1,7 @@
+X	label	imageURL	link	IsCurrentApplication
+1	Cohort	NA		1
+2	Transcriptome	NA	https://covidome.shinyapps.io/Transcriptome/	0
+3	Proteome	NA	https://covidome.shinyapps.io/Proteome/	0
+4	Cytokines	NA	https://covidome.shinyapps.io/Cytokines/	0
+5	Metabolome	NA	https://covidome.shinyapps.io/Metabolome/	0
+6	Immune Map	NA	https://covidome.shinyapps.io/ImmuneMaps/	0
