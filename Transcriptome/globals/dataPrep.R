@@ -2,13 +2,15 @@ sourceData <- readRDS('Data/sourceData.rds')
 
 recordIDs <- unique(sourceData$RecordID)
 
-gene <- sourceData %>%
+platforms <- unique(sourceData$Platform)
+
+genes <- sourceData %>%
   distinct(Analyte) %>%
   pull(Analyte) %>%
-  sort()
+  sort() %>%
+  data.table()
 
-genes <- as.data.table(gene)
-rm(gene)
+setnames(genes,"Gene")
 
 sexes <- sourceData %>%
   select(Sex) %>%
@@ -27,7 +29,9 @@ ageGroups <- c("All","21 & Over")
 # 
 # glimpse(sourceData)
 # 
-# sourceData$Specimen_type <- "Whole Blood"
+# sourceData <- sourceData %>%
+#   rename("Platform" = Specimen_type) %>%
+#   mutate(Platform = "Whole Blood")
 # 
 # duplicateGenes <- sourceData %>%
 #   group_by(Gene_name,RecordID) %>%

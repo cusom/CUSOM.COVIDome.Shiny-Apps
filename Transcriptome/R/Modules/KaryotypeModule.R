@@ -3,7 +3,7 @@ KaryotypeUI <- function(id) {
     "Inputs" = 
       list(
         div(
-          id="Dataset-Options",class="sidebar-text",
+          id=NS(id,"Dataset-Options"),class="sidebar-text",
           HTML(
             paste0(
               '<h3>Dataset Options 
@@ -18,23 +18,27 @@ KaryotypeUI <- function(id) {
             )
           )
         )
-        ,tags$hr() 
+        ,tags$hr()
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Platform",choices = sort(platforms), selected = platforms[1]) 
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests, selected = statTests[1], inline=FALSE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods ,selected = adjustmentMethods[1], inline=FALSE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
-        ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups, inline=TRUE )
-        ,selectizeInput(
-          NS(id,"Analyte"),
-          label="Gene",
-          choices= genes,
-          options = list(
-            placeholder = 'Please select a Gene below',
-            onInitialize = I('function() { this.setValue(""); }'), 
-            closeAfterSelect = TRUE, 
-            selectOnTab = TRUE, 
-            persist = FALSE, 
-            `live-search` = TRUE, 
-            maxoptions = 1
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups[1], inline=TRUE )
+        ,div(
+          id=NS(id,"AnalyteInput"),
+          selectizeInput(
+            inputId = NS(id,"Analyte"),
+            label="Analyte",
+            choices= NULL,
+            options = list(
+              placeholder = 'Please select below',
+              onInitialize = I('function() { this.setValue(""); }'), 
+              closeAfterSelect = TRUE, 
+              selectOnTab = TRUE, 
+              persist = FALSE, 
+              `live-search` = TRUE, 
+              maxoptions = 1
+            )
           )
         )
         ,tags$br()
@@ -120,7 +124,7 @@ KaryotypeUI <- function(id) {
                       solidHeader = FALSE, 
                       collapsible = TRUE, 
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"), status="primary", value = TRUE)
+                        CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"), status="primary", value=TRUE)
                       ),
                       shinyjs::hidden(
                         CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupA"),label = "Group A", choices = recordIDs, selected = NULL, multiple = TRUE )
@@ -269,7 +273,12 @@ KaryotypeServer <- function(id) {
   
   moduleServer(id, function(input, output, session) {
 
-     ### Reactive Values #
+    ### labels / parameters
+    baselineLabel <- "Negative"
+    volcanoTopAnnotationLabel <- 'Up in COVID-19 +'
+    analyteLabel <- "COVID-19 Status"
+
+    ### Reactive Values #
     rv <- reactiveValues(RunRefresh = -1, 
                          Platform = "",
                          maxFoldChange = 0,
@@ -278,7 +287,8 @@ KaryotypeServer <- function(id) {
                            pvalue = NA, 
                            xCoordiante = NA, 
                            yCoordinate = NA, 
-                           name = ''
+                           name = '', 
+                           searchName = ''
                          ),
                          tutorialClicks = list(
                            "BoxplotGroupComparison" = 0
@@ -295,9 +305,7 @@ KaryotypeServer <- function(id) {
         inputId = "TutorialName",
         selected = input$TutorialName
       )
-      
-      
-      
+          
       #keep track of times each tutorial has been shown...
       if(input$TutorialName=="BoxplotGroupComparison") {
         
@@ -320,7 +328,8 @@ KaryotypeServer <- function(id) {
       }
       
     })  
-    
+
+
     tutorialSteps <- reactive({
       
       tutorials %>%
@@ -340,20 +349,61 @@ KaryotypeServer <- function(id) {
       
     })
     
-    
+    observeEvent(c(input$Platform),{
+
+      placeholder <- "Please select a Gene below"
+      AnalyteLabel <- "Highlight Gene (optional)"
+      rv$analyteLabel <- "Gene"
+      analyteChoices <- genes
+      
+      updateSelectizeInput(
+        session = session,
+        inputId = "Analyte",
+        label = AnalyteLabel,
+        choices = analyteChoices
+      )
+
+      updateSelectizeInput(
+        session = session,
+        inputId = "GroupAnalysisChoice", 
+        selected = ""
+      )
+
+      updatePickerInput(
+        session = session,
+        inputId = 'GroupA',
+        selected = ""
+      )
+
+      updatePickerInput(
+        session = session,
+        inputId = 'GroupB',
+        selected = ""
+      )
+      
+      shinyjs::hide("LogTransform")
+      shinyjs::hide("GroupAnalysisOptions")
+      shinyjs::hide("AnalyteContent")
+      shinyjs::hide("ExternalLinks")
+     
+    })
+
     # change plots tab title based on chosen platform
     output$PlotsTitle <- renderUI({
-      paste0(input$CellType,' Plots')
+      paste0(input$Platform,' Plots')
     })
-    
-    
-    # # BASE DATASET WITH UI FILTERS APPLIED 
-    dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh),{
+        
+    # BASE DATASET WITH UI FILTERS APPLIED 
+    dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh,input$Platform),{ 
 
-      dataframe <- sourceData %>%    
+      dataframe <- sourceData %>%   
+        filter(Platform==input$Platform) %>% 
         filter(Sex %in% input$Sex) %>%
-        filter(AgeGroup %in% input$AgeGroup) 
-        #CUSOMShinyHelpers::applyGroupCountThreshold(Status,Gene_name, threshold = 1)
+        mutate(AgeGroup = case_when(input$AgeGroup=="All" ~ "All", input$AgeGroup!="All" ~ AgeGroup)) %>%
+        filter(AgeGroup == input$AgeGroup) %>%
+        # Assign appropriate variable to more generic "Group Variable"
+        mutate(GroupVariable = Status) %>%
+        CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable,Analyte, threshold = 1)
 
       if(nrow(dataframe) > 0) {
         return(dataframe)
@@ -366,7 +416,7 @@ KaryotypeServer <- function(id) {
 
     shared_dataWithFilters <- SharedData$new(dataWithFilters)
 
-    FoldChangeData <- eventReactive(input$VolcanoDatasetRefresh,{
+    FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh,input$Platform),{
       
       baseData <- dataWithFilters()
       
@@ -392,8 +442,8 @@ KaryotypeServer <- function(id) {
         )
               
         foldChange <- baseData %>%
-          CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, Status, na.rm = TRUE) %>%
-          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, Status, median, "Negative",inf.rm=TRUE)
+          CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, GroupVariable, na.rm = TRUE) %>%
+          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, GroupVariable, median, baselineLabel,inf.rm = TRUE)
         
         update_modal_progress(
           value = 2,
@@ -403,7 +453,7 @@ KaryotypeServer <- function(id) {
         
         statsData <- baseData %>%
           mutate(log2MeasuredValue = log2(MeasuredValue)) %>%
-          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Analyte,Status,log2MeasuredValue,input$StatTest, input$AdjustmentMethod)   
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Analyte,GroupVariable,log2MeasuredValue,input$StatTest, input$AdjustmentMethod)   
        
         update_modal_progress(
           value = 3,
@@ -453,71 +503,30 @@ KaryotypeServer <- function(id) {
 
     # change the fold change tab title based on platform
     output$FoldChangeDataTitle <- renderUI ({
-      paste0(input$CellType,' Fold Change Data')
+      paste0(input$Platform,' Fold Change Data')
     })
     
     shared_FoldChangeData <- SharedData$new(FoldChangeData)
     
     FoldChangeDataTableData <- reactive({
       
-      dataframe <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+      shared_FoldChangeData$data(withSelection = FALSE) %>%
         mutate(pvalueCutoff = case_when(input$PValue=="all" ~ 1 , input$PValue==" * P &le; 0.05" ~ 0.05, input$PValue==" ** P &le; 0.01" ~ 0.01 , input$PValue==" *** P &le; 0.001" ~ 0.001)) %>%
         filter(log2Foldchange >= min(input$FoldChange), log2Foldchange <= max(input$FoldChange)) %>%
         filter(p.value <= pvalueCutoff) %>%
-        select(Analyte,FoldChange,p.value,p.value.original,`Positive`, `Negative`,log2Foldchange,`-log10pvalue`,method,p.value.adjustment.method)
-      
-      
-      if(nrow(dataframe) > 0) {
-        
-        if(unique(dataframe$p.value.adjustment.method=="none")) {
-          
-          dataframe <- dataframe %>%
-            select(-c(p.value.original,p.value.adjustment.method)) %>%
-            rename( "Fold Change (Positive/Negative)" = FoldChange , 
-                    "p-value" = p.value, 
-                    "Positive Median" = `Positive`, 
-                    "Negative Median" = `Negative`, 
-                    "log<sub>2</sub> Fold Change" = `log2Foldchange` , 
-                    "-log<sub>10</sub> p-value" = `-log10pvalue` , 
-                    "Statistical test" = method
-            )
-          
-        }
-        
-        else {
-          
-          dataframe <- dataframe %>%
-            rename( "Fold Change (Positive/Negative)" = FoldChange , 
-                    "p-value (adj)" = p.value, 
-                    "p-value (original)" = p.value.original,
-                    "Positive Median" = `Positive`, 
-                    "Negative Median" = `Negative`, 
-                    "log<sub>2</sub> Fold Change" = `log2Foldchange` , 
-                    "-log<sub>10</sub> p-value (adj)" = `-log10pvalue` , 
-                    "Statistical test" = method, 
-                    "Adjustment Method" = p.value.adjustment.method
-            )
-          
-        }
-        
-        return(dataframe)
-      
-      } 
-      
-      else {
-        
-        return(NULL)
-      }
+        select(-c(selected_,pvalueCutoff)) %>%
+        CUSOMShinyHelpers::formatFoldChangeDataframe(baselineLabel = baselineLabel)
       
     })
     
+
     output$FoldChangeDataTable <- DT::renderDataTable({
     
       DT::datatable(
         data=FoldChangeDataTableData(),
         caption = htmltools::tags$caption(
            style = 'caption-side: bottom; text-align: center;',
-            'Fold Change Data: ', htmltools::em('Raw Fold Change Data Used for Volcano Plot')
+            'Fold Change Data: ', htmltools::em('Fold Change Data Used for Volcano Plot')
         ),
         #filter = 'top',
         extensions = c('Buttons','ColReorder','Responsive','Scroller'),
@@ -545,22 +554,24 @@ KaryotypeServer <- function(id) {
 
       if(!is.null(dataframe)) {
                
+        p.value.suffix <- ifelse(unique(dataframe$p.value.adjustment.method)=="none","","(adj) ")
+
+        dataframe <- dataframe %>%
+          mutate(text = paste0("Gene:", Analyte,
+                                "<br />fold_change:", round(FoldChange,2),
+                                "<br />p-value",p.value.suffix,": ",formatC(p.value, format = "e", digits = 2) 
+                                )
+                )
+
+        a <- dataframe %>% CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,volcanoTopAnnotationLabel) 
         shinyjs::show("VolcanoContent")
         shinyjs::hide("VolcanoContentEmpty")
-        
-        a <- dataframe %>% CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,'Up in COVID-19 +') 
-
-        p.value.suffix <- ifelse(unique(dataframe$p.value.adjustment.method)=="none","","(adj) ")
 
         yaxis.title <- paste0("p-value ",p.value.suffix,"(-log<sub>10</sub>)")
 
         dataframe %>%
-          mutate(text = paste0("Gene:", Analyte,
-                                '<br />fold_change:', round(FoldChange,2),
-                                "<br />p-value",p.value.suffix,": ",formatC(p.value, format = "e", digits = 2) 
-                                ))  %>%
           CUSOMShinyHelpers::AddSignificanceGroup(log2Foldchange,`-log10pvalue`, pValueThreshold) %>%
-          CUSOMShinyHelpers::getVolcanoPlot(log2Foldchange,`-log10pvalue`, significanceGroup, text, Analyte, "CovidStatus") %>%
+          CUSOMShinyHelpers::getVolcanoPlot(log2Foldchange,`-log10pvalue`, significanceGroup, text, Analyte, plotName = id) %>%
           layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = FALSE)) %>%
           layout(yaxis = list(title=yaxis.title,fixedrange = FALSE)) %>%
           layout(annotations=a) %>%
@@ -606,7 +617,7 @@ KaryotypeServer <- function(id) {
 
     output$VolcanoPlotTitle <- renderUI({
      
-      title <- ifelse(input$VolcanoDatasetRefresh,'Effect of COVID-19 status on all genes in Whole Blood','Please start by setting dataset options below')
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of ',analyteLabel,' on all genes in Whole Blood'),'Please start by setting dataset options below')
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
@@ -644,9 +655,9 @@ KaryotypeServer <- function(id) {
 
     
     #### Observe Volcano Plot Clicks ####
-    observeEvent(event_data("plotly_click", source = "CovidStatusVolcanoPlot"),{
-      
-      e <- event_data("plotly_click", source = "CovidStatusVolcanoPlot")
+    observeEvent(event_data("plotly_click", source = paste0(id,"VolcanoPlot")),{ 
+
+      e <- event_data("plotly_click", source = paste0(id,"VolcanoPlot"))
       
       updateSelectizeInput(
         session = session,
@@ -675,10 +686,15 @@ KaryotypeServer <- function(id) {
 
         a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
           mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
-          CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,'Up in COVID-19 +') 
+          CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,volcanoTopAnnotationLabel) 
         
         plotlyProxy("VolcanoPlot", session) %>%
           plotlyProxyInvoke("relayout", list(annotations = a))
+
+        shinyjs::show("AnalyteContent")
+        shinyjs::show("LogTransform")
+        shinyjs::show("ExternalLinks")
+        shinyjs::hide("AnalyteContentEmpty")
       
       }
          
@@ -710,12 +726,14 @@ KaryotypeServer <- function(id) {
       )
     })
 
+    # # Reactive Data #### 
     AnalyteDataset <- eventReactive(c(input$VolcanoDatasetRefresh,input$Analyte, input$LogTransform), {
       
       validate(
         need(!is.na(input$Analyte),""),
         need(input$Analyte != "",""),
         need(input$VolcanoDatasetRefresh[1]>0,"")
+
       )
       
       dataframe <- dataWithFilters() 
@@ -728,7 +746,7 @@ KaryotypeServer <- function(id) {
                  y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )) %>% 
           # log 2 tranformations can result in Inf -- meaningless, should not count as points in boxplot...
           filter(y != Inf, y != -Inf) %>%
-          CUSOMShinyHelpers::applyGroupCountThreshold(Status, threshold = 10)        
+          CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable, threshold = 10)        
       }
       
       else {
@@ -736,8 +754,7 @@ KaryotypeServer <- function(id) {
       }
 
     })
-
-    
+ 
     shared_AnalyteDataset <- SharedData$new(AnalyteDataset)
  
     # Karyotype Box Plot ####
@@ -753,10 +770,11 @@ KaryotypeServer <- function(id) {
         shinyjs::hide("AnalyteContentEmpty")
         
         dataset %>%      
-          mutate(text = paste0(RecordID,'<br />',y)) %>%
+          mutate(text = paste0(y)) %>%
           mutate(highlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
-          select(key=RecordID,group=Status,value=y,valueLabel=y_label,text, highlightGroup) %>%
-          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(key,group,"Negative",value,valueLabel,text,highlightGroup,plotName="Analyte") %>%
+          select(key=RecordID,group=GroupVariable,value=y,valueLabel=y_label,text, highlightGroup) %>%
+          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(key,group,baselineLabel,value,valueLabel,text,highlightGroup,plotName=paste0(id,"Analyte")) %>%
+          layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE),legend=list(title=list(text=paste0("<b>",analyteLabel,"</b>"))))  %>%
           config(
             displayModeBar = TRUE,
             displaylogo = FALSE,
@@ -811,18 +829,19 @@ KaryotypeServer <- function(id) {
         ungroup() %>%
         select(p.value,p.value.adjustment.method) 
       
-      if(!is.na(p$p.value) ) {
+      if(nrow(p) > 0) {
         
         HTML(
           paste0(
-            '<h3>Effect of COVID-19 status on ',input$Analyte,' in Whole Blood
+            '<h3>Effect of ',analyteLabel,' on ',input$Analyte,' in Whole Blood
               <span onclick=\"launchTutorial(\'',id,'\',\'BoxPlot\')\"
                 data-toggle="tooltip"
                 data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
-                data-original-title="Click here to learn more about interacting with this plot">
+                data-original-title="Use the box or lasso select to highlight records and see additional information below">
               </span>
             </h3>',
-            CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method,pValueThreshold)           
+            CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method,pValueThreshold)   
+
           )
         )
         
@@ -836,7 +855,7 @@ KaryotypeServer <- function(id) {
               <span onclick=\"launchTutorial(\'',id,'\',\'VolcanoPlot\')\"
                 data-toggle="tooltip"
                 data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
-                data-original-title="Click here to learn more about Volcano Plots">
+                data-original-title="Use the box or lasso select to highlight records and see additional information below">
               </span>
             </h3>'
           )
@@ -859,9 +878,10 @@ KaryotypeServer <- function(id) {
       )
     })
     
-  observeEvent(event_data("plotly_selected", source = "AnalyteBoxPlot") ,{
 
-      e <- event_data("plotly_selected", source = "AnalyteBoxPlot")
+    observeEvent(event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") ), {
+      
+      e <- event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") )
      
       recordIDs <- e %>% select(key) %>% pull()
 
@@ -1082,7 +1102,7 @@ KaryotypeServer <- function(id) {
         filter(Analyte==input$AnalyteComparision) %>%
         mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
-        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        mutate(text = paste0(MeasuredValue)) %>%
         mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
         filter(!is.na(HighlightGroup))
       
@@ -1099,7 +1119,7 @@ KaryotypeServer <- function(id) {
       dataframe <- shared_AnalyteDataset$data(withSelection = FALSE) %>%      
         mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
-        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        mutate(text = paste0(MeasuredValue)) %>%
         mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
         filter(!is.na(HighlightGroup))
       
