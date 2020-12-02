@@ -7,7 +7,6 @@ Platforms <- sourceData %>%
   select(Platform) %>%
   ungroup() %>%
   pull()
-  #sort(unique(sourceData$Platform))
 
 recordIDs <- unique(sourceData$RecordID)
 
@@ -19,15 +18,17 @@ sexes <- sourceData %>%
 ageGroups <- c("All","21 & Over")
 
 ######################## 
-# 
+
 # library(dplyr)
 # sourceData <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# serogroups <- read.delim(file.choose(), stringsAsFactors = FALSE)
 # metadata <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
 # nrow(sourceData)
+# nrow(serogroups)
 # nrow(metadata)
-# glimpse(sourceData)
 # 
+# glimpse(sourceData)
 # sourceData <- sourceData %>%
 #   mutate("Analyte" = Cell_population, "Measurement" = "percent") %>%
 #   rename("Platform" = Lineage, "MeasuredValue" = Percent)
@@ -44,11 +45,22 @@ ageGroups <- c("All","21 & Over")
 #   select(RecordID,Sex,AgeGroup,Status) %>%
 #   unique()
 # 
+# nrow(Participant)
+# 
+# Participant <- Participant %>%
+#   left_join(serogroups,by="RecordID") %>%
+#   rename("SeroconversionGroup" = group) %>%
+#   mutate(SeroconversionGroup = ifelse(SeroconversionGroup=="Neg.",NA,SeroconversionGroup))
+# 
+# nrow(Participant)
 # 
 # sourceData <- sourceData %>%
 #   inner_join(Participant,by="RecordID")
 # 
+# nrow(sourceData)
+# 
 # rm(Participant)
 # rm(metadata)
+# rm(serogroups)
 # 
 # saveRDS(sourceData,'Data/sourceData.rds')

@@ -31,15 +31,17 @@ setnames(aptamers, "Protein : SOMAmer ID")
 
 
 ######################## 
-# 
+
 # library(dplyr)
 # library(stringr)
 # MassSpec <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # SOMA <- read.delim(file.choose(),stringsAsFactors=FALSE)
+# serogroups <- read.delim(file.choose(), stringsAsFactors = FALSE)
 # metadata <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # 
 # nrow(MassSpec)
 # nrow(SOMA)
+# nrow(serogroups)
 # nrow(metadata)
 # 
 # setdiff(colnames(MassSpec),colnames(SOMA))
@@ -91,6 +93,15 @@ setnames(aptamers, "Protein : SOMAmer ID")
 #   select(RecordID,Sex,AgeGroup,Status) %>%
 #   unique()
 # 
+# nrow(Participant)
+# 
+# Participant <- Participant %>%
+#   left_join(serogroups,by="RecordID") %>%
+#   rename("SeroconversionGroup" = group) %>%
+#   mutate(SeroconversionGroup = ifelse(SeroconversionGroup=="Neg.",NA,SeroconversionGroup))
+# 
+# nrow(Participant)
+# 
 # sourceData <- sourceData %>%
 #   inner_join(Participant,by="RecordID") %>%
 #   mutate(MeasuredValue = adjusted_relative_abundance, Measurement = 'adjusted relative abundance') %>%
@@ -98,5 +109,6 @@ setnames(aptamers, "Protein : SOMAmer ID")
 # 
 # rm(Participant)
 # rm(metadata)
+# rm(serogroups)
 # 
 # saveRDS(sourceData,'Data/sourceData.rds')
