@@ -90,7 +90,7 @@ KaryotypeUI <- function(id) {
                     status = "primary", 
                     solidHeader = FALSE, 
                     collapsible = TRUE,
-                    withSpinner(plotlyOutput(NS(id,"VolcanoPlot"),height = "650px"))
+                    withSpinner(plotlyOutput(NS(id,"VolcanoPlot"),height = "678px"))
                   )
                 ),
                 shinyjs::hidden(
@@ -132,7 +132,7 @@ KaryotypeUI <- function(id) {
                       shinyjs::hidden(
                         CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupB"),label = "Group B", choices = recordIDs, selected = NULL, multiple = TRUE )
                       ),                  
-                      withSpinner(plotlyOutput(NS(id,"AnalyteBoxPlot"),height = "630px"))                   
+                      withSpinner(plotlyOutput(NS(id,"AnalyteBoxPlot"),height = "626px"))                   
                     )                   
                   ), 
                   shinyjs::hidden(
@@ -554,27 +554,41 @@ KaryotypeServer <- function(id) {
 
       if(!is.null(dataframe)) {
                
-        p.value.suffix <- ifelse(unique(dataframe$p.value.adjustment.method)=="none","","(adj) ")
-
-        dataframe <- dataframe %>%
-          mutate(text = paste0("Gene:", Analyte,
-                                "<br />fold_change:", round(FoldChange,2),
-                                "<br />p-value",p.value.suffix,": ",formatC(p.value, format = "e", digits = 2) 
-                                )
-                )
-
-        a <- dataframe %>% CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,volcanoTopAnnotationLabel) 
+        ## gets a list of annotations / shapes / parameters 
+        a <- dataframe %>% 
+              CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2Foldchange,
+                                      pValueVar = `-log10pvalue`,
+                                      selected = `selected_`,
+                                      arrowLabelTextVar = Analyte,
+                                      upRegulatedText = volcanoTopAnnotationLabel
+                                      )
+       
+        pValueSuffix <- ifelse(a$parameters$pValueAdjustedInd,"(adj) ","")
+        
         shinyjs::show("VolcanoContent")
         shinyjs::hide("VolcanoContentEmpty")
-
-        yaxis.title <- paste0("p-value ",p.value.suffix,"(-log<sub>10</sub>)")
-
+        
         dataframe %>%
-          CUSOMShinyHelpers::AddSignificanceGroup(log2Foldchange,`-log10pvalue`, pValueThreshold) %>%
-          CUSOMShinyHelpers::getVolcanoPlot(log2Foldchange,`-log10pvalue`, significanceGroup, text, Analyte, plotName = id) %>%
+          mutate(text = paste0("Gene:", Analyte,
+                               "<br />fold_change:", round(FoldChange,2),
+                               "<br />p-value",pValueSuffix,": ",formatC(p.value, format = "e", digits = 2))) %>%
+
+          CUSOMShinyHelpers::addSignificanceGroup(foldChangeVar = log2Foldchange,
+                                   pValueVar = `-log10pvalue`, 
+                                   threshold = a$parameters$pValueThresholdTransformed) %>%
+          
+          CUSOMShinyHelpers::getVolcanoPlot(foldChangeVar = log2Foldchange,
+                             pValueVar = `-log10pvalue`,
+                             significanceGroup =  significanceGroup, 
+                             text = text, 
+                             key = Analyte, 
+                             plotName = id) %>%
+          
           layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = FALSE)) %>%
-          layout(yaxis = list(title=yaxis.title,fixedrange = FALSE)) %>%
-          layout(annotations=a) %>%
+          layout(yaxis = list(title=paste0("p-value ",pValueSuffix,"(-log<sub>10</sub>)"),fixedrange = FALSE)) %>%
+          layout(shapes=a$shapes) %>%
+          layout(annotations=c(a$annotations,a$arrow)) %>%
+          layout(margin = list( t = 60)) %>%
           config(
             displayModeBar = TRUE,
             displaylogo = FALSE,
@@ -670,31 +684,26 @@ KaryotypeServer <- function(id) {
     observeEvent(c(input$Analyte),{
    
       if (input$Analyte != '') {
-      
-        r <- shared_FoldChangeData$data(withSelection = FALSE) %>%
-          filter(Analyte==input$Analyte) %>%
-          as_tibble() %>%
-          select(p.value, name = Analyte, x = log2Foldchange, y = `-log10pvalue`) %>%
-          as.list()
         
-        rv$selectedAnalyte$pvalue <- as.numeric(r$p.value)
-        rv$selectedAnalyte$xCoordiante <- as.numeric(r$x)
-        rv$selectedAnalyte$yCoordinate <- as.numeric(r$y)
-        rv$selectedAnalyte$name <- r$name
-
-        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
-
         a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
           mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
-          CUSOMShinyHelpers::getVolcanoAnnotations(log2Foldchange,`-log10pvalue`, `selected_`, Analyte, pValueThreshold,volcanoTopAnnotationLabel) 
+          CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2Foldchange,
+                                    pValueVar = `-log10pvalue`,
+                                    selected = `selected_`,
+                                    arrowLabelTextVar = Analyte,
+                                    upRegulatedText = volcanoTopAnnotationLabel
+          )
+        
+        rv$selectedAnalyte$name <- input$Analyte
+        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
         
         plotlyProxy("VolcanoPlot", session) %>%
-          plotlyProxyInvoke("relayout", list(annotations = a))
+          plotlyProxyInvoke("relayout", list(annotations = c(a$annotations,a$arrow)))
 
         shinyjs::show("AnalyteContent")
         shinyjs::show("LogTransform")
         shinyjs::show("ExternalLinks")
-        shinyjs::hide("AnalyteContentEmpty")
+        shinyjs::hide("AnalyteContentEmpty")  
       
       }
          
@@ -840,7 +849,7 @@ KaryotypeServer <- function(id) {
                 data-original-title="Use the box or lasso select to highlight records and see additional information below">
               </span>
             </h3>',
-            CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method,pValueThreshold)   
+            CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method)   
 
           )
         )
@@ -1202,7 +1211,7 @@ KaryotypeServer <- function(id) {
           select(p.value) %>%
           pull()
         
-        pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod,pValueThreshold),'</b>')
+        pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod),'</b>')
         
         pval2 <- dataframe %>%
           filter(Analyte==input$AnalyteComparision) %>%
@@ -1210,7 +1219,7 @@ KaryotypeServer <- function(id) {
           select(p.value) %>%
           pull()
        
-        pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod,pValueThreshold),'</b>')
+        pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod),'</b>')
 
         p <- dataframe %>%
           CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,HighlightGroup,Analyte,input$Analyte,y,y_label,text,TRUE,"AnalyteComparison") %>%

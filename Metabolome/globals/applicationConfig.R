@@ -23,6 +23,5 @@ statTests <- CUSOMShinyHelpers::getStatTestByKeyGroup.methods
 
 adjustmentMethods <- c("none","Bonferroni","Benjamini-Hochberg (FDR)")
 
-pValueThreshold <- 0.05
 
 
