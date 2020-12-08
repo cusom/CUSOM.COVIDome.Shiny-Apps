@@ -463,7 +463,7 @@ SeroconversionServer <- function(id) {
           text = "Calculating Fold Change...",
           session = shiny::getDefaultReactiveDomain()
         )
-              
+            
         foldChange <- baseData %>%
           CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, GroupVariable, na.rm = TRUE) %>%
           CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, GroupVariable, median, baselineLabel,inf.rm = TRUE)

@@ -27,7 +27,7 @@ RedBloodCellMetabolites <- sourceData %>%
   pull()
 
 ######################## 
-
+ 
 # library(dplyr)
 # plasma <- read.delim(file.choose(),stringsAsFactors=FALSE)
 # rbc <- read.delim(file.choose(),stringsAsFactors=FALSE)
@@ -45,12 +45,6 @@ RedBloodCellMetabolites <- sourceData %>%
 # unique(rbc$Specimen_type)
 # 
 # rbc$Specimen_type <- "Red Blood Cells"
-# 
-# setdiff(colnames(plasma),colnames(rbc))
-# 
-# plasma$Sex <- NULL
-# plasma$Status <- NULL
-# plasma$Visit <- NULL
 # 
 # setdiff(colnames(plasma),colnames(rbc))
 # 
