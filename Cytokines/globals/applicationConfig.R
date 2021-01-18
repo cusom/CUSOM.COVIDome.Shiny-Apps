@@ -5,6 +5,10 @@ options(warn = -1)
 # get App metadata
 appConfig <- read_tsv('./config/appConfig.tsv',col_types = cols())
 
+isProductionApp <- ifelse(appConfig$Environment=="Production",TRUE,FALSE)
+
+isDeployed <-  Sys.getenv('SHINY_PORT') != ""
+
 ApplicationURL <- ifelse(appConfig$Environment=="Production",appConfig$applicationURL,'')
 
 sideBarMenuItems <- read_tsv('./config/sidebarMenuItems.tsv',col_types = cols()) %>% filter(IsHidden == 0) %>% select(-c(IsHidden))
