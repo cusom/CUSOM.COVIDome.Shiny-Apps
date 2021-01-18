@@ -7,7 +7,7 @@ function launchTutorial(id,tutorialName){
 function ShowBoxplotGroupOptions(gd,tutorialName) {
 
   id = gd.id.split('-',1).toString();  
-  //console.log(id,tutorialName);
+  console.log(id,tutorialName);
   comparisonElementName = id + "-" + "GroupAnalysisOptions";
   document.getElementById(comparisonElementName).scrollIntoView();
     
@@ -37,11 +37,46 @@ function overrideModebarDivId(el) {
 
 }
 
-function DisablePlotData(plotName) {
-  traces  = document.getElementById(plotName)._fullData;
-  // console.log(traces);
-  for (var i = 0; i < traces.length; i++) {
-      traces[i].visible = false;
-    }
-}
+function updateVolcanoSelected(plotName,keyName,delimiter) {
 
+  var trace0keys = document.getElementById(plotName).data[0].key;
+  var trace1keys = document.getElementById(plotName).data[1].key;
+  var trace2keys = document.getElementById(plotName).data[2].key;
+  var vals = keyName.split(delimiter);
+
+  var index0 = [], i = -1;
+  for (j=0;j<vals.length;j++) {
+      val = vals[j];
+      while ((i = trace0keys.indexOf(val, i+1)) != -1){
+          index0.push(i);
+      }
+  }
+        
+  var index1 = [], i = -1;
+  for (j=0;j<vals.length;j++) {
+      val = vals[j];
+      while ((i = trace1keys.indexOf(val, i+1)) != -1){
+          index1.push(i);
+      }
+  }
+  
+  var index2 = [], i = -1;
+  for (j=0;j<vals.length;j++) {
+      val = vals[j];
+      while ((i = trace2keys.indexOf(val, i+1)) != -1){
+          index2.push(i);
+      }
+  }
+       
+  var indicies = [index0,index1,index2];
+  //console.log(indicies);
+
+  Plotly.update(plotName, {selectedpoints: indicies});
+  Plotly.restyle(plotName, { selected : { marker: { size:10, opacity:1.0, color:"#ff0000" } } }, [0] );
+  Plotly.restyle(plotName, { unselected : { marker: { size:8, opacity:0.6 } } }, [0] );
+  Plotly.restyle(plotName, { selected : {marker: { size:10, opacity:1.0, color:"#ff0000"} } }, [1]);
+  Plotly.restyle(plotName, { unselected : {marker: { size:8, opacity:0.6} } }, [1]);
+  Plotly.restyle(plotName, { selected : {marker: { size:10, opacity:1.0, color:"#ff0000"} } }, [2]);
+  Plotly.restyle(plotName, { unselected : {marker: { size:8, opacity:0.6} } }, [2]);
+  
+}
