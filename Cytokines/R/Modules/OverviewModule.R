@@ -1,5 +1,3 @@
-
-
 OverviewUI <- function(id) {
   list(
     "Inputs" = 
@@ -46,8 +44,12 @@ OverviewServer <- function(id) {
           <div class="overviewHeader">OVERVIEW</div>
           <p>
           This dashboard contains data generated from plasma using Meso Scale Discovery&reg; assays for 82 unique immune regulatory factors. 
+          In the &lsquo;Effect of COVID19&rsquo; dashboard, users can explore the differences in cytokine levels between samples from those with versus without COVID19. 
+          In the &lsquo;Effect of Seroconversion&rsquo; dashboard, users can explore the differences in cytokine levels between samples from COVID19 patients with low levels of seroconversion versus those with high levels of seroconversion.  
           The data are searchable by <a href="./MSD Names.pdf" target="_blank"><b>factor name</b></a> and can be filtered by age group and sex. 
-          Users can select different statistical tests and adjustment method for multiple hypotheses correction.
+          Users can select different statistical tests and adjustment method for multiple hypotheses correction. 
+          A detailed description of seroconversion studies can be found in our manuscript under 
+          <a href="https://www.medrxiv.org/content/10.1101/2020.12.05.20244442v1" target="_blank"><b>review</b></a>. 
           </p>
           <br />
 

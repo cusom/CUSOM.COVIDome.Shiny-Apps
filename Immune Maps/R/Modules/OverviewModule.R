@@ -1,5 +1,3 @@
-
-
 OverviewUI <- function(id) {
   list(
     "Inputs" = 
@@ -49,8 +47,12 @@ OverviewServer <- function(id) {
           <p>
           This dashboard contains data generated from circulating blood using a platform known as mass cytometry or cytometry time-of-flight (CyTOF). 
           CyTOF enables the measurement of hundreds of immune cell subsets. 
-          In this dashboard, users can select one of seven immune submaps defined by the &lsquo;parent cell lineage&rsquo; and visualize 
-          individual cell types within that lineage.
+          In the &lsquo;Effect of COVID19&rsquo; dashboard, users can explore the differences by &lsquo;parent cell lineage&rsquo; between samples from those with versus without COVID19. 
+          In the &lsquo;Effect of Seroconversion&rsquo; dashboard, users can explore the differences by &lsquo;parent cell lineage&rsquo; between samples from COVID19 patients with low levels of seroconversion versus those with high levels of seroconversion.  
+          The data are searchable by seven immune submaps defined by the &lsquo;parent cell lineage&rsquo; and can be filtered by age group and sex. 
+          Users can select different statistical tests and adjustment method for multiple hypotheses correction. 
+          A detailed description of seroconversion studies can be found in our manuscript under 
+          <a href="https://www.medrxiv.org/content/10.1101/2020.12.05.20244442v1" target="_blank"><b>review</b></a>. 
           </p>
 
           <br />
