@@ -108,6 +108,22 @@ KaryotypeUI <- function(id) {
                       withSpinner(uiOutput(NS(id,"VolcanoEmptyText"),height = "630px"))                   
                     ) 
                   )
+                ), 
+                shinyjs::hidden(
+                  div(
+                    id = NS(id,"VolcanoStart"),
+                    boxPlus(
+                      id = NS(id,"VolcanoStartBox"),
+                      title = htmlOutput(NS(id,"VolcanoStartTitle")),
+                      height= "auto",
+                      width = "auto",
+                      closable = FALSE, 
+                      status = "primary", 
+                      solidHeader = FALSE, 
+                      collapsible = TRUE,                       
+                      withSpinner(uiOutput(NS(id,"VolcanoStartText"),height = "630px"))                   
+                    ) 
+                  )
                 )
               ),
               column(
@@ -274,6 +290,7 @@ KaryotypeServer <- function(id) {
   moduleServer(id, function(input, output, session) {
 
     ### labels / parameters
+    groupVariable <- "Status"
     baselineLabel <- "Negative"
     volcanoTopAnnotationLabel <- 'Up in COVID-19 +'
     analyteLabel <- "COVID-19 Status"
@@ -344,7 +361,6 @@ KaryotypeServer <- function(id) {
       
       shinyjs::show("VolcanoContent")
       shinyjs::hide("VolcanoContentEmpty")
-      shinyjs::show("AnalyteContent")
       shinyjs::hide("AnalyteContentEmpty")
       
     })
@@ -416,16 +432,19 @@ KaryotypeServer <- function(id) {
     })
         
     # BASE DATASET WITH UI FILTERS APPLIED 
-    dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh,input$Platform),{    
-        
+    dataWithFilters <- function(platform,sex,ageGroup) { 
+      
+      groupVariable <- enquo(groupVariable)
+     
       dataframe <- sourceData %>%
-        filter(Platform==input$Platform) %>%
-        filter(Sex %in% input$Sex) %>%
-        mutate(AgeGroup = case_when(input$AgeGroup=="All" ~ "All", input$AgeGroup!="All" ~ AgeGroup)) %>%
-        filter(AgeGroup == input$AgeGroup) %>%
+        filter(Platform==platform) %>%
+        filter(Sex %in% sex) %>%
+        mutate(AgeGroup = case_when(ageGroup=="All" ~ "All", ageGroup !="All" ~ AgeGroup)) %>%
+        filter(AgeGroup == ageGroup) %>%
         # Assign appropriate variable to more generic "Group Variable"
-        mutate(GroupVariable = Status) %>%
-        CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable,Analyte, threshold = 1) 
+        rename(GroupVariable := !!groupVariable) %>%
+        filter(!is.na(GroupVariable)) %>%
+        CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable,Analyte, threshold = 1)
       
       if(nrow(dataframe) > 0) {
         return(dataframe)
@@ -434,16 +453,19 @@ KaryotypeServer <- function(id) {
         return(NULL)
       }
       
-    }, ignoreInit = TRUE)
-    
-    shared_dataWithFilters <- SharedData$new(dataWithFilters)
+    }
 
-    FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh,input$Platform),{
+    FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh), {
       
-      baseData <- dataWithFilters()
+      baseData <- dataWithFilters(input$Platform, input$Sex,input$AgeGroup)
      
       if(!is.null(baseData)) { 
-
+          
+        shinyjs::hide("AnalyteContent")
+        shinyjs::hide("LogTransform")
+        shinyjs::hide("ExternalLinks")
+        shinyjs::hide("VolcanoStart")
+        
         show_modal_progress_circle(
             value = 0,
             text = "Generating Volcano Plot...",
@@ -510,6 +532,7 @@ KaryotypeServer <- function(id) {
             
         rv$RunRefresh <- 0
         rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
+        rv$Platform <- input$Platform
         
         return(finalData)
 
@@ -521,7 +544,7 @@ KaryotypeServer <- function(id) {
 
       }   
 
-    })
+    }, ignoreInit = TRUE)
 
     # change the fold change tab title based on platform
     output$FoldChangeDataTitle <- renderUI ({
@@ -540,8 +563,7 @@ KaryotypeServer <- function(id) {
         CUSOMShinyHelpers::formatFoldChangeDataframe(baselineLabel = baselineLabel)
       
     })
-    
-    
+      
     output$FoldChangeDataTable <- DT::renderDataTable({
     
       DT::datatable(
@@ -572,7 +594,7 @@ KaryotypeServer <- function(id) {
     # Volcano Plot #### 
     output$VolcanoPlot <- renderPlotly({
      
-      dataframe <- FoldChangeData()
+      dataframe <- shared_FoldChangeData$data(withSelection = FALSE) 
       
       if(!is.null(dataframe)) {
         
@@ -589,6 +611,7 @@ KaryotypeServer <- function(id) {
 
         shinyjs::show("VolcanoContent")
         shinyjs::hide("VolcanoContentEmpty")
+        shinyjs::hide("VolcanoStart")
 
         dataframe %>%
           mutate(text = paste0(ifelse(grepl('Mass',input$Platform),"Protein:", "Aptamer:"), Analyte,
@@ -641,6 +664,39 @@ KaryotypeServer <- function(id) {
 
     })
 
+    output$VolcanoStartText <- renderUI({
+      
+      if(input$Platform != rv$Platform & rv$Platform != "") {
+        message <- paste0('It looks like you changed Platforms. Please set dataset options to refresh plot')
+      }
+      
+      else {
+        message <- paste0('Please start by setting dataset options to generate plot')
+      }
+      
+      HTML(
+        message       
+        )
+
+    })
+
+    output$VolcanoStartTitle <- renderUI({
+      
+      HTML(
+        paste0(
+         '<h3>Please start by setting dataset options below
+            <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\"
+            data-toggle="tooltip" 
+            data-placement="auto right" 
+            title="" 
+            class="fas fa-info-circle gtooltip"
+            data-original-title="Click here to learn about setting dataset options">
+            </span>
+          </h3>'        
+        )
+      )
+    })
+
     output$VolcanoEmptyText <- renderUI({
       HTML(
         paste0(
@@ -688,8 +744,7 @@ KaryotypeServer <- function(id) {
         )
       )
     })
-
-    
+  
     #### Observe Volcano Plot Clicks ####
     observeEvent(event_data("plotly_click", source = paste0(id,"VolcanoPlot")),{ 
 
@@ -704,7 +759,7 @@ KaryotypeServer <- function(id) {
     })
     
     observeEvent(c(input$Analyte),{
-   
+     
       if (input$Analyte != '') {
         
         a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
@@ -719,6 +774,12 @@ KaryotypeServer <- function(id) {
         rv$selectedAnalyte$name <- input$Analyte
         rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
         
+        plotName <- paste0(id,"-VolcanoPlot")
+                
+        keys <- paste0(input$Analyte,collapse = '|')
+        
+        shinyjs::runjs( paste0('updateVolcanoSelected("',plotName,'","',keys,'","|")') )
+
         plotlyProxy("VolcanoPlot", session) %>%
           plotlyProxyInvoke("relayout", list(annotations = c(a$annotations,a$arrow)))
 
@@ -728,7 +789,15 @@ KaryotypeServer <- function(id) {
         shinyjs::hide("AnalyteContentEmpty")  
       
       }
-            
+      
+      else {
+        shinyjs::hide("VolcanoContent")
+        shinyjs::hide("AnalyteContent")
+        shinyjs::hide("LogTransform")
+        shinyjs::hide("ExternalLinks")
+        shinyjs::show("VolcanoStart")
+      }
+      
     })
    
     onclick("Pubmed",shinyjs::runjs(paste0("window.open('https://www.ncbi.nlm.nih.gov/pubmed/?term=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
@@ -757,26 +826,31 @@ KaryotypeServer <- function(id) {
       )
     })
 
+    getAnalyteDataset <- function(platform,sex,ageGroup,analyte,logTransform,groupA,groupB) {
+      
+      dataWithFilters(platform,sex,ageGroup) %>%
+        filter(Analyte==analyte) %>%
+        mutate(y = case_when(logTransform==TRUE ~ log2(MeasuredValue), logTransform==FALSE ~ MeasuredValue), 
+              y_label = case_when(logTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), logTransform==FALSE ~ Measurement )) %>% 
+        filter(y != Inf, y != -Inf) %>%
+        mutate(highlightGroup = case_when(RecordID %in% groupA ~ "A", RecordID %in% groupB ~ "B"))    
+      
+    }
+
     # # Reactive Data #### 
-    AnalyteDataset <- eventReactive(c(input$VolcanoDatasetRefresh,input$Analyte, input$LogTransform), {
+    AnalyteDataset <- reactive({ 
       
       validate(
         need(!is.na(input$Analyte),""),
-        need(input$Analyte != "",""),
-        need(input$VolcanoDatasetRefresh[1]>0,"")
+        need(input$Analyte != "","")
 
       )
       
-      dataframe <- dataWithFilters()
+      dataframe <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$Analyte,input$LogTransform,input$GroupA,input$GroupB) 
       
       if(!is.null(dataframe)) {
        
-        dataframe %>%
-          filter(Analyte==input$Analyte) %>%
-          mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
-                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )) %>% 
-          # log 2 tranformations can result in Inf -- meaningless, should not count as points in boxplot...
-          filter(y != Inf, y != -Inf) %>%
+        dataframe %>%         
           CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable, threshold = 10)       
       }
 
@@ -785,15 +859,13 @@ KaryotypeServer <- function(id) {
       }
 
     })
-        
-    shared_AnalyteDataset <- SharedData$new(AnalyteDataset)  
 
     # Karyotype Box Plot ####
     output$AnalyteBoxPlot <- renderPlotly({
       
       dataset <- AnalyteDataset()
       
-      if(!is.null(dataset)) {
+      if(nrow(dataset)>0) {  
         
         shinyjs::show("AnalyteContent")
         shinyjs::show("LogTransform")
@@ -846,8 +918,7 @@ KaryotypeServer <- function(id) {
         )
       )
     })
-    
-     
+        
     output$AnalyteBoxPlotPlotTitle <- renderUI({
     
       validate(
@@ -898,8 +969,8 @@ KaryotypeServer <- function(id) {
     output$BoxplotAnalyteEmptyTitle <- renderUI({
       HTML(
         paste0(
-          '<h3>Unable to display plot for ',input$Analyte,'
-            <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
+          '<h3>Unable to display plot ',ifelse(input$Analyte!="",paste0('for ',input$Analyte),''),
+            '<span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
               data-toggle="tooltip"
               data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
               data-original-title="Click here to learn about setting dataset options">
@@ -909,7 +980,6 @@ KaryotypeServer <- function(id) {
       )
     })
 
-  
     observeEvent(event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") ), {
       
       e <- event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") )
@@ -1005,7 +1075,6 @@ KaryotypeServer <- function(id) {
       }
 
     })
-
 
     observeEvent(c(input$dismiss_groupselectmodal),{
      
@@ -1122,131 +1191,190 @@ KaryotypeServer <- function(id) {
        
     })
 
-    
-    AnalyteComparisonDataset <- reactive({  
+    ComparisonDatasets <- reactive({
 
       validate(
-        need(input$AnalyteComparision!='','')
+        need(rv$groupComparisonChoice == input$GroupAnalysisChoice,''),    
+        need(input$GroupAnalysisChoice != "",''), 
+        need(input$Analyte!='','')
       )
    
-      shared_dataWithFilters$data(withSelection = FALSE) %>%
-        filter(Analyte==input$AnalyteComparision) %>%
-        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
-               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
-        mutate(text = paste0(MeasuredValue)) %>%
-        mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
-        filter(!is.na(HighlightGroup))
+      analyteDataset <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$Analyte,input$LogTransform,input$GroupA,input$GroupB) %>%    
+        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        filter(!is.na(highlightGroup))
       
-    })
-    
-       
-    HighlightGroupComparisonDataset <- reactive({ 
+      # sexData <- analyteDataset %>%
+      #     rename("Sex" = Gender) %>%
+      #     group_by(highlightGroup,Sex) %>%
+      #     summarise(n=n_distinct(LabID)) %>%
+      #     inner_join(
+      #       analyteDataset  %>%
+      #         group_by(highlightGroup) %>%
+      #         summarise(All=n_distinct(LabID))
+      #       , on=c("highlightGroup")
+      #     ) %>%
+      #     mutate(Percent = n / All) %>%
+      #     select(highlightGroup,Sex,Percent) %>%
+      #     CUSOMShinyHelpers::fillMissingSexObservations(highlightGroup,c("A","B")) %>%
+      #     spread(Sex,Percent) 
       
-      validate(
-        need(rv$groupComparisonChoice == input$GroupAnalysisChoice,''), 
-        need(input$GroupAnalysisChoice != "",'')
-      )
+      # ageData <- analyteDataset %>%
+      #   select(highlightGroup,AgeAtTimeOfVisit)
       
-      dataframe <- shared_AnalyteDataset$data(withSelection = FALSE) %>%      
-        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
-               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
-        mutate(text = paste0(MeasuredValue)) %>%
-        mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
-        filter(!is.na(HighlightGroup))
-      
-      
-      if(grepl('Sex',input$GroupAnalysisChoice)) {
-        
-        return(
-          dataframe %>%
-            group_by(HighlightGroup,Gender) %>%
-            summarise(n=n_distinct(LabID)) %>%
-            inner_join(
-              dataframe  %>%
-                group_by(HighlightGroup) %>%
-                summarise(All=n_distinct(record_id))
-              , on=c("HighlightGroup")
-            ) %>%
-            mutate(Percent = n / All) %>%
-            select(HighlightGroup,Gender,Percent) %>%
-            fillMissingGenderObservations(HighlightGroup,c("A","B")) %>%
-            spread(Gender,Percent) 
-        )
-
-      }
-
-      else if(grepl('Age',input$GroupAnalysisChoice)) {
-        
-        return(
-          dataframe %>%
-            select(HighlightGroup,AgeAtTimeOfVisit)
-          )
-
-      }
-
-      else if(grepl('analyte',input$GroupAnalysisChoice)) {        
-        
-      
-        dataframeB <- AnalyteComparisonDataset()
-       
-        return(rbind(dataframeB ,dataframe))
-        
-      }
-
-      else if(grepl('Comorb',input$GroupAnalysisChoice)) {
-        
-        return(
+      comparisonAnalyteDataset <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$AnalyteComparision,input$LogTransform,input$GroupA,input$GroupB) %>%
+        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        filter(!is.na(highlightGroup)) 
           
-          ParticipantConditions %>%
-            filter(Condition %in% input$ComorbidityComparision ) %>%
-            mutate(HasConditionFlag = case_when(HasCondition=='True'~1, HasCondition=='False'~0)) %>%
-            select(LabID,Condition, HasCondition, HasConditionFlag) %>%
-            group_by(LabID) %>%
-            summarise(HasAnyConditionFlag = sum(HasConditionFlag)) %>%
-            mutate(HasAnyConditionFlag = ifelse(HasAnyConditionFlag>0,1,0)) %>%
-            drop_na() %>% 
-            right_join(dataframe,conditionData,by="LabID") %>%
-            select(LabID,HasAnyConditionFlag, HighlightGroup,y,y_label)
-        )
-
-      } 
+      # comorbidityDataset <- ParticipantConditions %>%
+      #   filter(Condition %in% input$ComorbidityComparision ) %>%
+      #   mutate(HasConditionFlag = case_when(HasCondition=='True'~1, HasCondition=='False'~0)) %>%
+      #   select(LabID,Condition, HasCondition, HasConditionFlag) %>%
+      #   group_by(LabID) %>%
+      #   summarise(HasAnyConditionFlag = sum(HasConditionFlag)) %>%
+      #   mutate(HasAnyConditionFlag = ifelse(HasAnyConditionFlag>0,"Yes","No")) %>%
+      #   drop_na() %>% 
+      #   right_join(analyteDataset,conditionData,by="LabID") %>%
+      #   select(LabID,HasAnyConditionFlag, highlightGroup,y,y_label) %>%
+      #   left_join(
+      #     ParticipantConditions %>%
+      #       filter(Condition %in% input$ComorbidityComparision ) %>%
+      #       filter(HasCondition=='True') %>%
+      #       group_by(LabID) %>%
+      #       mutate(Conditions = paste0(Condition, collapse = "; ")) %>%
+      #       select(LabID,Conditions)
+      #     , by="LabID"
+      #   ) %>%
+      #   replace_na(list(Conditions=''))
       
-      else {
-        return(NULL)
-      }
-
+      return(
+        list(
+        "analyteDataset" =  analyteDataset, 
+        # "sexData" = sexData, 
+        # "ageData" = ageData, 
+        "comparisonAnalyteDataset" = comparisonAnalyteDataset
+        # "comorbidityDataset" = comorbidityDataset
+        )
+      )
+    
     })
       
     output$AnalyteGroupComparisonPlot <- renderPlotly({
       
       validate(
+        need(!is.na(input$GroupAnalysisChoice),''),
         need(rv$groupComparisonChoice == input$GroupAnalysisChoice,'')
       )
+      
+      comparisonDatasets <- ComparisonDatasets()
+      
+      if(grepl('Sex',input$GroupAnalysisChoice)) {
+        
+        p <- comparisonDatasets$sexData %>%
+          getSelectedRecordsSexPlot(highlightGroup) %>%
+          layout(yaxis = list(title="Highlighted Group",fixedrange = TRUE)) %>%
+          layout(xaxis = list(fixedrange = TRUE)) %>%
+          layout(title = "Comparison of Sex Distriubtion")
 
-      dataframe <- HighlightGroupComparisonDataset()
+      }
+      
+      if(grepl('Age',input$GroupAnalysisChoice)) {
+
+        p <- comparisonDatasets$ageData %>%
+          getSelectedRecordsAgePlot(highlightGroup,AgeAtTimeOfVisit) %>%
+          layout(xaxis = list(title="Highlighted Group",fixedrange = TRUE)) %>%
+          layout(yaxis = list(title="Age",fixedrange = TRUE)) %>%
+          layout(title = "Comparison of Age Distriubtion")
+          
+      }
       
       if(grepl('analyte',input$GroupAnalysisChoice)) {
-       
-        pval1 <- dataframe %>%
-          filter(Analyte==input$Analyte) %>%
-          getStatTestByKeyGroup(RecordID,Analyte,HighlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+        
+        if(nrow(comparisonDatasets$analyteDataset) > 0 & nrow(comparisonDatasets$comparisonAnalyteDataset) > 0 ) {
+        
+          analyteLabel <- comparisonDatasets$analyteDataset %>% select(Analyte) %>% unique() %>% pull()
+          pval1 <- comparisonDatasets$analyteDataset %>%
+            getStatTestByKeyGroup(RecordID,Analyte,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+            select(p.value) %>%
+            pull()
+          pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod),'</b>')
+          
+          comparisonLabel <- comparisonDatasets$comparisonAnalyteDataset %>% select(Analyte) %>% unique() %>% pull()
+          pval2 <- comparisonDatasets$comparisonAnalyteDataset %>%
+            getStatTestByKeyGroup(RecordID,Analyte,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+            select(p.value) %>%
+            pull()
+          pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod),'</b>')
+          
+          combinedData <- comparisonDatasets$analyteDataset %>%
+          bind_rows(comparisonDatasets$comparisonAnalyteDataset)
+        
+          p <- combinedData %>%
+            CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,highlightGroup,Analyte,analyteLabel,y,y_label,text,TRUE,"AnalyteComparison") %>%
+            layout(
+              title = paste0("Comparison Between ",analyteLabel," and ",comparisonLabel,""),
+              annotations = list(
+                list(
+                  x = 0.225, 
+                  y = 1.05, 
+                  font = list(size = 16), 
+                  text = pval1text,
+                  xref = "paper", 
+                  yref = "paper", 
+                  xanchor = "center", 
+                  yanchor = "bottom", 
+                  showarrow = FALSE
+                ), 
+                list(
+                  x = 0.775, 
+                  y = 1.05, 
+                  font = list(size = 16), 
+                  text = pval2text,
+                  xref = "paper", 
+                  yref = "paper", 
+                  xanchor = "center", 
+                  yanchor = "bottom", 
+                  showarrow = FALSE
+                )
+              )
+            )
+      
+        }
+        else {
+          p <- NULL
+        }
+
+      }
+
+      if(grepl('Comorb',input$GroupAnalysisChoice)) {
+        
+        validate(
+          need(!is.na(input$ComorbidityComparision),'')
+        )
+        
+        pval1 <- comparisonDatasets$comorbidityDataset %>%
+          filter(HasAnyConditionFlag=="Yes") %>%
+          getStatTestByKeyGroup(RecordID,HasAnyConditionFlag,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
           select(p.value) %>%
           pull()
         
         pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod),'</b>')
         
-        pval2 <- dataframe %>%
-          filter(Analyte==input$AnalyteComparision) %>%
-          getStatTestByKeyGroup(RecordID,Analyte,HighlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+        pval2 <- comparisonDatasets$comorbidityDataset %>%
+          filter(HasAnyConditionFlag=="No") %>%
+          getStatTestByKeyGroup(RecordID,HasAnyConditionFlag,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
           select(p.value) %>%
           pull()
-       
+        
         pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod),'</b>')
-
-        p <- dataframe %>%
-          CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,HighlightGroup,Analyte,input$Analyte,y,y_label,text,TRUE,"AnalyteComparison") %>%
+        
+        p <- comparisonDatasets$comorbidityDataset %>%
+          mutate(text = paste0(RecordID,'<br />', y, '<br />',Conditions)) %>%
+          mutate(HasAnyConditionFlag = case_when(HasAnyConditionFlag=="No"~"Does not have any selected conditions",
+                                                  HasAnyConditionFlag=="Yes"~"Has at least 1 selected condition")) %>%
+          drop_na() %>%
+          CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,highlightGroup,HasAnyConditionFlag,"Has at least 1 selected condition",y,y_label,text,TRUE,"AnalyteComparison") %>%
           layout(
-            title = paste0("Comparison Between ",input$Analyte," and ",input$AnalyteComparision,""),
+            title = paste0("Comorbidity Frequency Comparison Between Groups"),
             annotations = list(
               list(
                 x = 0.225, 
@@ -1272,7 +1400,6 @@ KaryotypeServer <- function(id) {
               )
             )
           ) 
-
       }
       
       if(!is.null(p)) {
@@ -1281,15 +1408,9 @@ KaryotypeServer <- function(id) {
           config(
             displayModeBar = TRUE,
             displaylogo = FALSE,
-            toImageButtonOptions = list(
-              format = "svg",
-              filename = paste0(appConfig$applicationName, " - Analyte Group Comparison ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
-              width = session$clientData[[paste0('output_',id,'-AnalyteGroupComparisonPlot_width')]],
-              height = session$clientData[[paste0('output_',id,'-AnalyteGroupComparisonPlot_height')]]
-            ),
             modeBarButtons = list(
-              list("toImage")
-              #list(plotlyCustomIcons$BoxplotClear)
+              list("toImage"), 
+              list(plotlyCustomIcons$BoxplotClear)
             )
           ) %>% onRender("function(el) { overrideModebarDivId(el); }")
         
@@ -1301,7 +1422,7 @@ KaryotypeServer <- function(id) {
         
       }
       
-    })
+    }) 
     
   })
   
