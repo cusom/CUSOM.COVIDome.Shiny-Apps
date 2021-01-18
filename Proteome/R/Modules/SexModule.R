@@ -1,0 +1,1311 @@
+SexUI <- function(id) {
+  list(
+    "Inputs" = 
+      list(
+        div(
+          id=NS(id,"Dataset-Options"),class="sidebar-text",
+          HTML(
+            paste0(
+              '<h3>Dataset Options 
+                <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
+                  data-toggle="tooltip" 
+                  data-placement="auto right" 
+                  title="" 
+                  class="fas fa-info-circle gtooltip"
+                  data-original-title="Click here to learn about setting dataset options">
+                </span>
+              </h3>'
+            )
+          )
+        )
+        ,tags$hr()
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Platform",choices = sort(platforms), selected = platforms[1])
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests, selected = statTests[1], inline=FALSE )
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods ,selected = adjustmentMethods[1], inline=FALSE )
+        ,shinyjs::disabled(
+          CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
+        )
+        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups[1], inline=TRUE )
+        ,div(
+          id=NS(id,"AnalyteInput"),
+          selectizeInput(
+            inputId = NS(id,"Analyte"),
+            label="Analyte",
+            choices= NULL,
+            options = list(
+              placeholder = 'Please select below',
+              onInitialize = I('function() { this.setValue(""); }'), 
+              closeAfterSelect = TRUE, 
+              selectOnTab = TRUE, 
+              persist = FALSE, 
+              `live-search` = TRUE, 
+              maxoptions = 1
+            )
+          )
+        )
+        ,tags$br()
+        ,actionButton(NS(id,"VolcanoDatasetRefresh"), "Apply filters and generate plot", class = "refresh-btn")
+        ,tags$hr() 
+        ,shinyjs::hidden(
+          div(
+            id = NS(id,"ExternalLinks"), class="sidebar-text-overflow"
+            ,htmlOutput(NS(id,"ExternalLinksText"))              
+            ,actionLink(inputId = NS(id,"Pubmed"), label = "Pubmed", icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"GeneCards"), label = "GeneCards",icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"GTEx"), label = "GTEx",icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"NCBI"), label = "NCBI",icon = icon("external-link-alt"))
+            ,actionLink(inputId = NS(id,"Wikipedia"), label = "Wikipedia", icon = icon("external-link-alt"))
+          )
+        )
+        ,shinyjs::hidden(
+          selectizeInput(
+            NS(id,"TutorialName"),
+            label="TutorialName",
+            choices=c("DatasetOptions","VolcanoPlot","BoxPlot","BoxplotGroupComparison","Other"),
+            options = list(
+              placeholder = '',
+              onInitialize = I('function() { this.setValue(""); }'),
+              closeAfterSelect = TRUE,
+              selectOnTab = TRUE,
+              persist = FALSE,
+              `live-search` = TRUE,
+              maxoptions = 1
+            )
+          )
+        )
+      ), 
+    
+    "Outputs" = 
+      list(
+        tabsetPanel(
+          tabPanel(title = uiOutput(NS(id,"PlotsTitle")),   
+            fluidRow(
+              column(
+                width=6,
+                div(
+                  id = NS(id,"VolcanoContent"),
+                  boxPlus(
+                    title = htmlOutput(NS(id,"VolcanoPlotTitle")),
+                    height = "auto",
+                    width = "auto",
+                    closable = FALSE, 
+                    status = "primary", 
+                    solidHeader = FALSE, 
+                    collapsible = TRUE,
+                    withSpinner(plotlyOutput(NS(id,"VolcanoPlot"),height = "678px"))
+                  )
+                ),
+                shinyjs::hidden(
+                  div(
+                    id = NS(id,"VolcanoContentEmpty"),
+                    boxPlus(
+                      id = NS(id,"VolcanoContentEmptyBox"),
+                      title = htmlOutput(NS(id,"VolcanoContentEmptyTitle")),
+                      height= "auto",
+                      width = "auto",
+                      closable = FALSE, 
+                      status = "primary", 
+                      solidHeader = FALSE, 
+                      collapsible = TRUE,                       
+                      withSpinner(uiOutput(NS(id,"VolcanoEmptyText"),height = "630px"))                   
+                    ) 
+                  )
+                )
+              ),
+              column(
+                width=6,
+                  div(
+                    id = NS(id,"AnalyteContent"),
+                    boxPlus(
+                      id = NS(id,"AnalyteContent"),
+                      title = htmlOutput(NS(id,"AnalyteBoxPlotPlotTitle")),
+                      height= "auto",
+                      width = "auto",
+                      closable = FALSE, 
+                      status = "primary", 
+                      solidHeader = FALSE, 
+                      collapsible = TRUE,         
+                      shinyjs::hidden(
+                        CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"), status="primary", value=TRUE)
+                        ),
+                      shinyjs::hidden(
+                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupA"),label = "Group A", choices = recordIDs, selected = NULL, multiple = TRUE )
+                        ),
+                      shinyjs::hidden(
+                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupB"),label = "Group B", choices = recordIDs, selected = NULL, multiple = TRUE )
+                        ),                  
+                      withSpinner(plotlyOutput(NS(id,"AnalyteBoxPlot"),height = "626px"))                   
+                    )                   
+                  ), 
+                  shinyjs::hidden(
+                  div(
+                    id = NS(id,"AnalyteContentEmpty"),
+                    boxPlus(
+                      id = NS(id,"AnalyteContentEmptyBox"),
+                      title = htmlOutput(NS(id,"BoxplotAnalyteEmptyTitle")),
+                      height= "auto",
+                      width = "auto",
+                      closable = FALSE, 
+                      status = "primary", 
+                      solidHeader = FALSE, 
+                      collapsible = TRUE,                       
+                      withSpinner(uiOutput(NS(id,"BoxplotAnalyteEmptyText"),height = "630px"))                   
+                    ) 
+                  )
+                )
+              )
+            )
+            ,tags$hr()  
+            ,fluidRow(
+              shinyjs::hidden(
+                div(
+                  id = NS(id,"GroupAnalysisOptions"),
+                  boxPlus(
+                    title = "You have selected 2 groups! Compare them here:",
+                    height = "auto",
+                    width = "auto",
+                    closable = FALSE, 
+                    status = "primary", 
+                    solidHeader = FALSE, 
+                    collapsible = TRUE,
+                    fluidRow(
+                      column(width=1),
+                      column(
+                        width=2,
+                        fluidRow(
+                          selectizeInput(
+                            NS(id,"GroupAnalysisChoice"),
+                            label = "Choose a comparison option below",
+                            choices = c('To another analyte'),
+                            options = list(
+                              placeholder = 'Using the selected groups, compare',
+                              onInitialize = I('function() { this.setValue(""); }'), 
+                              closeAfterSelect = FALSE, 
+                              selectOnTab = TRUE, 
+                              persist = TRUE, 
+                              `live-search` = TRUE, 
+                              maxoptions = 1
+                            )
+                          )
+                        ),
+                        fluidRow(
+                          selectizeInput(
+                            NS(id,"AnalyteComparision"),
+                            label="",
+                            choices='',
+                            options = list(
+                              placeholder = 'Analytes available to compare to:',
+                              onInitialize = I('function() { this.setValue(""); }'),
+                              closeAfterSelect = FALSE,
+                              selectOnTab = TRUE,
+                              persist = TRUE,
+                              `live-search` = TRUE,
+                              maxoptions = 1
+                            )
+                          )
+                        ),                       
+                        tags$hr()                                       
+                      ),
+                      column(
+                        width=8,
+                        div(
+                          withSpinner(plotlyOutput(NS(id,"AnalyteGroupComparisonPlot")))
+                        )
+                      ), 
+                      column(1) 
+                    ) 
+                  )
+                )
+              )
+            )                           
+          ), 
+          tabPanel(title = uiOutput(NS(id,"FoldChangeDataTitle")),
+            fluidRow(
+              box(
+                height="auto",
+                width = 12,
+                fluidRow(
+                  box(
+                    width = 3,
+                    height = 150,
+                    sliderInput(
+                      inputId = NS(id,"FoldChange"),
+                      label = HTML("Filter by Log<sub>2</sub> Fold Change"),
+                      min = -10,
+                      max = 10,
+                      step = 0.05,
+                      value = c(-10,10)
+                    )
+                  ), 
+                  box(
+                    width = 4,
+                    height = 150,
+                    radioGroupButtons(
+                      inputId =  NS(id,"PValue"),
+                      label = "Filter by p-value significance level",
+                      choices = c("all"," * P &le; 0.05", " ** P &le; 0.01", " *** P &le; 0.001"),
+                      individual = FALSE,
+                      checkIcon = list(
+                          yes = tags$i(class = "fa fa-circle", style = "color: steelblue"),
+                          no = tags$i(class = "fa fa-circle-o", style = "color: steelblue")
+                          )
+                    )
+                  )                     
+                ),
+                tags$hr(),
+                fluidRow(
+                  box(
+                    title = "",
+                    id = NS(id,"tabpanel2"),
+                    height="auto",
+                    width = 11,
+                    withSpinner(DT::dataTableOutput(NS(id,"FoldChangeDataTable")))
+                  )
+                )
+              )
+            )
+          )
+        )       
+    )
+  ) 
+}
+
+
+SexServer <- function(id) {
+  
+  moduleServer(id, function(input, output, session) {
+
+    ### labels / parameters
+    baselineLabel <- "Female"
+    volcanoTopAnnotationLabel <- 'Up in Males'
+    analyteLabel <- "Sex"
+    
+    ### Reactive Values #
+    rv <- reactiveValues(RunRefresh = -1, 
+                         Platform = "",
+                         maxFoldChange = 0,
+                         lastGroupFilled = NA ,
+                         selectedAnalyte = list(
+                           pvalue = NA, 
+                           xCoordiante = NA, 
+                           yCoordinate = NA, 
+                           name = '', 
+                           searchName = ''
+                         ),
+                         tutorialClicks = list(
+                           "BoxplotGroupComparison" = 0
+                         ),
+                         ignoreTutorial= 0, 
+                         errorMessage = "",
+                         groupselectmodalstate = -1  
+                         )  
+
+    observeEvent(input$TutorialName, {
+      
+      updateSelectizeInput(
+        session = session,
+        inputId = "TutorialName",
+        selected = input$TutorialName
+      )
+
+      #keep track of times each tutorial has been shown...
+      if(input$TutorialName=="BoxplotGroupComparison") {
+        
+        rv$tutorialClicks$BoxplotGroupComparison <- rv$tutorialClicks$BoxplotGroupComparison + 1
+        
+        if(rv$tutorialClicks$BoxplotGroupComparison > 1) {
+          rv$ignoreTutorial <- 1
+        }
+      } 
+      else {
+        
+        rv$ignoreTutorial <- 0
+        
+      }
+
+      if(input$TutorialName != '' & rv$ignoreTutorial == 0) {
+        
+        introjs(session = session, options=list(steps=tutorialSteps()))
+        
+      }
+      
+    })   
+      
+ 
+    tutorialSteps <- reactive({
+      
+      tutorials %>%
+        filter(namespace==id) %>%
+        filter(tutorialName==input$TutorialName)
+
+    })
+       
+    observeEvent(c(input$VolcanoDatasetRefresh),{
+      
+      rv$RunRefresh <- rv$RunRefresh + 1
+      
+      shinyjs::show("VolcanoContent")
+      shinyjs::hide("VolcanoContentEmpty")
+      shinyjs::show("AnalyteContent")
+      shinyjs::hide("AnalyteContentEmpty")
+      
+    })
+    
+    observeEvent(c(input$Platform),{
+      
+      if(grepl('Mass',input$Platform)) {
+        
+        placeholder <- "Protein : Swiss-Prot ID"
+        AnalyteLabel <- "Highlight Protein (optional)"     
+        rv$analyteLabel <- "Protein"
+        analyteChoices <- proteins
+        
+      }
+      
+      if(grepl('SOMA',input$Platform)) {
+        
+        placeholder <- "Protein : SOMAmer ID"
+        AnalyteLabel <- "Highlight aptamer (optional)"
+        rv$analyteLabel <- "Aptamer"
+        analyteChoices <- aptamers
+
+      }
+      
+      updateSelectizeInput(
+        session = session,
+        inputId = "Analyte",
+        label = AnalyteLabel,
+        choices = analyteChoices, 
+        options = list(
+          placeholder = placeholder,
+          onInitialize = I('function() { this.setValue(""); }'), 
+          closeAfterSelect = TRUE, 
+          selectOnTab = TRUE, 
+          persist = FALSE, 
+          `live-search` = TRUE, 
+          maxoptions = 1
+        )
+      )
+      
+      updateSelectizeInput(
+        session = session,
+        inputId = "GroupAnalysisChoice", 
+        selected = ""
+      )
+
+      updatePickerInput(
+        session = session,
+        inputId = 'GroupA',
+        selected = ""
+      )
+
+      updatePickerInput(
+        session = session,
+        inputId = 'GroupB',
+        selected = ""
+      )    
+      
+      shinyjs::hide("LogTransform")
+      shinyjs::hide("GroupAnalysisOptions")
+      shinyjs::hide("AnalyteContent")
+      shinyjs::hide("ExternalLinks")
+     
+    })
+      
+    # change plots tab title based on chosen platform
+    output$PlotsTitle <- renderUI({
+      paste0(input$Platform,' Plots')
+    })
+        
+    # BASE DATASET WITH UI FILTERS APPLIED 
+    dataWithFilters <- eventReactive(c(input$VolcanoDatasetRefresh,input$Platform),{    
+        
+      dataframe <- sourceData %>%
+        filter(Platform==input$Platform) %>%
+        #filter(Sex %in% input$Sex) %>%
+        mutate(AgeGroup = case_when(input$AgeGroup=="All" ~ "All", input$AgeGroup!="All" ~ AgeGroup)) %>%
+        filter(AgeGroup == input$AgeGroup) %>%
+        # Assign appropriate variable to more generic "Group Variable"
+        mutate(GroupVariable = Sex) %>%
+        CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable,Analyte, threshold = 1) 
+      
+      if(nrow(dataframe) > 0) {
+        return(dataframe)
+      } 
+      else {
+        return(NULL)
+      }
+      
+    }, ignoreInit = TRUE)
+    
+    shared_dataWithFilters <- SharedData$new(dataWithFilters)
+
+    FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh,input$Platform),{
+      
+      baseData <- dataWithFilters()
+     
+      if(!is.null(baseData)) { 
+
+        show_modal_progress_circle(
+            value = 0,
+            text = "Generating Volcano Plot...",
+            color = "#3c8dbc",
+            stroke_width = 4,
+            easing = "linear",
+          
+            trail_color = "#eee",
+            trail_width = 1,
+            height = "200px",
+            session = shiny::getDefaultReactiveDomain()
+          )
+          
+        update_modal_progress(
+          value = 1,
+          text = "Calculating Fold Change...",
+          session = shiny::getDefaultReactiveDomain()
+        )
+            
+        foldChange <- baseData %>%
+          CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, GroupVariable, na.rm = TRUE) %>%
+          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, GroupVariable, median, baselineLabel,inf.rm = TRUE)
+        
+        update_modal_progress(
+          value = 2,
+          text = paste0("Running ",input$StatTest,"..."),
+          session = shiny::getDefaultReactiveDomain()
+        )
+        
+        statsData <- baseData %>%
+          mutate(log2MeasuredValue = log2(MeasuredValue)) %>%
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Analyte,GroupVariable,log2MeasuredValue,input$StatTest, input$AdjustmentMethod)
+        
+        update_modal_progress(
+          value = 3,
+          text = ifelse(input$AdjustmentMethod=="none",paste0("Running ",input$StatTest,"..."),paste0("Adjusting P Values using ",input$AdjustmentMethod," method...")),
+          session = shiny::getDefaultReactiveDomain()
+        )
+        
+        finalData <- inner_join(foldChange, statsData, by="Analyte") %>%
+          mutate(selected_ = ifelse(Analyte==input$Analyte,1,0))
+
+        update_modal_progress(
+          value = 4,
+          text = "Finalizing plot...",
+          session = shiny::getDefaultReactiveDomain()
+        )
+          
+        if("error" %in% colnames(finalData)) {
+          
+          rv$errorMessage <- paste0('Error running ',unique(finalData$method),': ',  unique(finalData$error))
+          
+          finalData <- NULL 
+          
+        }
+        
+        else {
+
+          rv$errorMessage <- ""
+
+        }
+
+        remove_modal_progress(session = getDefaultReactiveDomain())
+            
+        rv$RunRefresh <- 0
+        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
+        
+        return(finalData)
+
+      } 
+
+      else {
+
+        return(NULL)
+
+      }   
+
+    })
+
+    # change the fold change tab title based on platform
+    output$FoldChangeDataTitle <- renderUI ({
+      paste0(input$Platform,' Fold Change Data')
+    })
+    
+    shared_FoldChangeData <- SharedData$new(FoldChangeData)
+    
+    FoldChangeDataTableData <- reactive({
+      
+      shared_FoldChangeData$data(withSelection = FALSE) %>%
+        mutate(pvalueCutoff = case_when(input$PValue=="all" ~ 1 , input$PValue==" * P &le; 0.05" ~ 0.05, input$PValue==" ** P &le; 0.01" ~ 0.01 , input$PValue==" *** P &le; 0.001" ~ 0.001)) %>%
+        filter(log2Foldchange >= min(input$FoldChange), log2Foldchange <= max(input$FoldChange)) %>%
+        filter(p.value <= pvalueCutoff) %>%
+        select(-c(selected_,pvalueCutoff)) %>%
+        CUSOMShinyHelpers::formatFoldChangeDataframe(baselineLabel = baselineLabel)
+      
+    })
+    
+    
+    output$FoldChangeDataTable <- DT::renderDataTable({
+    
+      DT::datatable(
+        data=FoldChangeDataTableData(),
+        caption = htmltools::tags$caption(
+           style = 'caption-side: bottom; text-align: center;',
+            'Fold Change Data: ', htmltools::em('Fold Change Data Used for Volcano Plot')
+        ),
+        #filter = 'top',
+        extensions = c('Buttons','ColReorder','Responsive','Scroller'),
+        selection = 'none',
+        options = list(
+          dom = 'Brftip',
+          colReorder = TRUE,
+          autowidth=FALSE,
+          deferRender = TRUE,
+          scrollY = 400,
+          scroller = TRUE,
+          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+        ),
+        rownames = FALSE,
+        style = 'bootstrap',
+        escape = FALSE
+      )
+    }, server=FALSE)
+    
+
+    # Volcano Plot #### 
+    output$VolcanoPlot <- renderPlotly({
+     
+      dataframe <- FoldChangeData()
+      
+      if(!is.null(dataframe)) {
+
+        ## gets a list of annotations / shapes / parameters 
+        a <- dataframe %>% 
+          CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2Foldchange,
+                                                  pValueVar = `-log10pvalue`,
+                                                  selected = `selected_`,
+                                                  arrowLabelTextVar = Analyte,
+                                                  upRegulatedText = volcanoTopAnnotationLabel
+          )
+
+        pValueSuffix <- ifelse(a$parameters$pValueAdjustedInd,"(adj) ","")
+
+        shinyjs::show("VolcanoContent")
+        shinyjs::hide("VolcanoContentEmpty")
+
+        dataframe %>%
+          mutate(text = paste0(ifelse(grepl('Mass',input$Platform),"Protein:", "Aptamer:"), Analyte,
+                              "<br />fold_change:", round(FoldChange,2),
+                              "<br />p-value",pValueSuffix,": ",formatC(p.value, format = "e", digits = 2))) %>%
+          
+          CUSOMShinyHelpers::addSignificanceGroup(foldChangeVar = log2Foldchange,
+                                                  pValueVar = `-log10pvalue`, 
+                                                  threshold = a$parameters$pValueThresholdTransformed) %>%
+          
+          CUSOMShinyHelpers::getVolcanoPlot(foldChangeVar = log2Foldchange,
+                                            pValueVar = `-log10pvalue`,
+                                            significanceGroup =  significanceGroup, 
+                                            text = text, 
+                                            key = Analyte, 
+                                            plotName = id) %>%
+          
+          layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = FALSE)) %>%
+          layout(yaxis = list(title=paste0("p-value ",pValueSuffix,"(-log<sub>10</sub>)"),fixedrange = FALSE)) %>%
+          layout(shapes=a$shapes) %>%
+          layout(annotations=c(a$annotations,a$arrow)) %>%
+          layout(margin = list( t = 60)) %>%
+          config(
+            displayModeBar = TRUE,
+            displaylogo = FALSE,
+            toImageButtonOptions = list(
+              format = "svg",
+              filename = paste0(appConfig$applicationName, " - Volcano Plot ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
+              width = session$clientData[[paste0('output_',id,'-VolcanoPlot_width')]],
+              height = session$clientData[[paste0('output_',id,'-VolcanoPlot_height')]]
+            ),
+            modeBarButtons = list(
+              list("zoom2d"),
+              list("zoomIn2d"),
+              list("zoomOut2d"),
+              list("resetScale2d"),
+              list("toImage") 
+            )
+          ) %>% onRender("function(el) { overrideModebarDivId(el); }")
+
+      } 
+
+      else {
+
+        shinyjs::hide("VolcanoContent")
+        shinyjs::show("VolcanoContentEmpty")
+        CUSOMShinyHelpers::getBoxplotForEmptyData(text = "")
+
+      }
+
+    })
+
+    output$VolcanoEmptyText <- renderUI({
+      HTML(
+        paste0(
+         'Based on your chosen filters, there are not enough observations to generate the plot. <br /> <br />
+          Please re-adjust dataset options and try again.', 
+          ifelse(rv$errorMessage!="",paste0('<br /><br /><em><b>',rv$errorMessage,'</b></em>'),'')
+        )
+      )
+    })
+
+    output$VolcanoPlotTitle <- renderUI({
+     
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of ',analyteLabel,' on all ',ifelse(grepl('Mass',input$Platform),'proteins','aptamers')),'Please start by setting dataset options below')
+      
+      tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
+      
+      tooltip <- ifelse(input$VolcanoDatasetRefresh,'Click here to learn about volcano plots','Click here to learn about setting dataset options')
+      
+      HTML(
+        paste0(
+          '<h3>',title,' 
+            <span onclick=\"launchTutorial(\'',id,'\',\'',tutorial,'\')\"
+            data-toggle="tooltip" 
+            data-placement="auto right" 
+            title="" 
+            class="fas fa-info-circle gtooltip"
+            data-original-title="',tooltip,'">
+            </span>
+          </h3>'
+        )
+      )
+
+    })
+    
+    output$VolcanoContentEmptyTitle <- renderUI({
+      HTML(
+        paste0(
+          '<h3>Unable to display Volcano plot
+            <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
+              data-toggle="tooltip"
+              data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+              data-original-title="Click here to learn about setting dataset options">
+            </span>
+          </h3>'
+        )
+      )
+    })
+
+    
+    #### Observe Volcano Plot Clicks ####
+    observeEvent(event_data("plotly_click", source = paste0(id,"VolcanoPlot")),{ 
+
+      e <- event_data("plotly_click", source = paste0(id,"VolcanoPlot"))
+      
+      updateSelectizeInput(
+        session = session,
+        inputId = "Analyte",
+        selected = e$key
+      )
+
+    })
+    
+    observeEvent(c(input$Analyte),{
+   
+      if (input$Analyte != '') {
+        
+        a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+          mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
+          CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2Foldchange,
+                                    pValueVar = `-log10pvalue`,
+                                    selected = `selected_`,
+                                    arrowLabelTextVar = Analyte,
+                                    upRegulatedText = volcanoTopAnnotationLabel
+          )
+        
+        rv$selectedAnalyte$name <- input$Analyte
+        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
+        
+        plotlyProxy("VolcanoPlot", session) %>%
+          plotlyProxyInvoke("relayout", list(annotations = c(a$annotations,a$arrow)))
+
+        shinyjs::show("AnalyteContent")
+        shinyjs::show("LogTransform")
+        shinyjs::show("ExternalLinks")
+        shinyjs::hide("AnalyteContentEmpty")  
+      
+      }
+            
+    })
+   
+    onclick("Pubmed",shinyjs::runjs(paste0("window.open('https://www.ncbi.nlm.nih.gov/pubmed/?term=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("GeneCards", shinyjs::runjs(paste0("window.open('https://www.genecards.org/Search/Keyword?queryString=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("GTEx", shinyjs::runjs(paste0("window.open('https://www.gtexportal.org/home/gene/",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("NCBI", shinyjs::runjs(paste0("window.open('https://www.ncbi.nlm.nih.gov/gene/?term=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+    onclick("Wikipedia", shinyjs::runjs(paste0("window.open('https://en.wikipedia.org/w/index.php?search=",rv$selectedAnalyte$searchName,"',target = '_blank')")))
+
+   output$ExternalLinksText <- renderUI({
+      HTML(
+        paste0(
+        '<h4>Search external sites <br />for ',rv$selectedAnalyte$searchName,'
+          <span 
+            data-toggle="tooltip" 
+            data-placement="auto right" 
+            title="" 
+            class="fas fa-info-circle gtooltip"
+            data-original-title="Click any link below to search external sites for ',rv$selectedAnalyte$searchName,'">
+          </span>
+        </h4>'
+        )
+      )
+    })
+
+    # # Reactive Data #### 
+    AnalyteDataset <- eventReactive(c(input$VolcanoDatasetRefresh,input$Analyte, input$LogTransform), {
+      
+      validate(
+        need(!is.na(input$Analyte),""),
+        need(input$Analyte != "",""),
+        need(input$VolcanoDatasetRefresh[1]>0,"")
+
+      )
+      
+      dataframe <- dataWithFilters()
+      
+      if(!is.null(dataframe)) {
+       
+        dataframe %>%
+          filter(Analyte==input$Analyte) %>%
+          mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
+                y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~ Measurement )) %>% 
+          # log 2 tranformations can result in Inf -- meaningless, should not count as points in boxplot...
+          filter(y != Inf, y != -Inf) %>%
+          CUSOMShinyHelpers::applyGroupCountThreshold(GroupVariable, threshold = 10)       
+      }
+
+      else {
+        NULL
+      }
+
+    })
+        
+    shared_AnalyteDataset <- SharedData$new(AnalyteDataset)  
+
+    # Karyotype Box Plot ####
+    output$AnalyteBoxPlot <- renderPlotly({
+      
+      dataset <- AnalyteDataset()
+      
+      if(!is.null(dataset)) {
+        
+        shinyjs::show("AnalyteContent")
+        shinyjs::show("LogTransform")
+        shinyjs::show("ExternalLinks")
+        shinyjs::hide("AnalyteContentEmpty")
+       
+        dataset %>%      
+          mutate(text = paste0(y)) %>%
+          mutate(highlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
+          select(key=RecordID,group=GroupVariable,value=y,valueLabel=y_label,text, highlightGroup) %>%
+          CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(key,group,baselineLabel,value,valueLabel,text,highlightGroup,colors=c("#3E99CD","#1D4D7C"), plotName=paste0(id,"Analyte") ) %>%
+          layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE),legend=list(title=list(text=paste0("<b>",analyteLabel,"</b>"))))  %>%
+          config(
+            displayModeBar = TRUE,
+            displaylogo = FALSE,
+            toImageButtonOptions = list(
+              format = "svg",
+              filename = paste0(appConfig$applicationName, " - Analyte Box Plot ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
+              width = session$clientData[[paste0('output_',id,'-AnalyteBoxPlot_width')]],
+              height = session$clientData[[paste0('output_',id,'-AnalyteBoxPlot_height')]]
+            ),
+            modeBarButtons = list(
+              list("select2d"), 
+              list("lasso2d"),
+              list("toImage"), 
+              list(plotlyCustomIcons$BoxplotCompareGroup),
+              list(plotlyCustomIcons$BoxplotClear)
+            )
+          ) %>% onRender("function(el) { overrideModebarDivId(el); }")
+     
+      }
+      
+      else {
+        
+        shinyjs::hide("AnalyteContent")
+        shinyjs::hide("LogTransform")
+        shinyjs::hide("ExternalLinks")
+        shinyjs::show("AnalyteContentEmpty")
+        CUSOMShinyHelpers::getBoxplotForEmptyData(text = "")
+        
+      }
+
+    })
+
+    output$BoxplotAnalyteEmptyText <- renderUI({
+      HTML(
+        paste0(
+         'One of the groups chosen contains less than 10 samples. <br /> <br />
+          Please re-adjust dataset options and try again.'
+        )
+      )
+    })
+    
+     
+    output$AnalyteBoxPlotPlotTitle <- renderUI({
+    
+      validate(
+        need(!is.na(input$Analyte),""),
+        need(input$Analyte != "","")
+      )
+
+      p <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+        filter(Analyte==input$Analyte) %>% 
+        ungroup() %>%
+        select(p.value,p.value.adjustment.method) 
+     
+      if(nrow(p) > 0) {
+           
+        HTML(
+          paste0(
+            '<h3>Effect of ',analyteLabel,' on ',input$Analyte,' in plasma
+              <span onclick=\"launchTutorial(\'',id,'\',\'BoxPlot\')\"
+                data-toggle="tooltip"
+                data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+                data-original-title="Use the box or lasso select to highlight records and see additional information below">
+              </span>
+            </h3>',
+            CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method)
+           
+          )
+        )
+        
+      } 
+      
+      else {
+        
+        HTML(
+          paste0(
+            '<h3>Please choose an analyte from the volcano plot
+              <span onclick=\"launchTutorial(\'',id,'\',\'VolcanoPlot\')\"
+                data-toggle="tooltip"
+                data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+                data-original-title="Use the box or lasso select to highlight records and see additional information below">
+              </span>
+            </h3>'
+          )
+        )
+      }
+      
+    })
+
+    output$BoxplotAnalyteEmptyTitle <- renderUI({
+      HTML(
+        paste0(
+          '<h3>Unable to display plot for ',input$Analyte,'
+            <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
+              data-toggle="tooltip"
+              data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+              data-original-title="Click here to learn about setting dataset options">
+            </span>
+          </h3>'
+        )
+      )
+    })
+
+  
+    observeEvent(event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") ), {
+      
+      e <- event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") )
+     
+      recordIDs <- e %>% select(key) %>% pull()
+
+      if(length(recordIDs) < 10) {
+        
+        rv$groupselectmodalstate <- 1
+        
+        showModal(
+          modalDialog(
+          title = "Cannot Highlight Group",
+          HTML(
+            paste0("You have selected only <b>",length(recordIDs), "</b> records and you must select at least <b><em>10</em></b> points to create a group. <br /><br />
+                  Please try your selection again...")
+               ),
+          easyClose = TRUE,
+          footer = tagList(
+            actionButton(inputId = NS(id,"dismiss_groupselectmodal"),
+                         label = "Dismiss")
+            )
+        )
+      )
+
+      } 
+
+      else {
+
+        # A is empty 
+        if(is.null(input$GroupA)) {
+          
+          rv$lastGroupFilled <- "A"
+          
+          updatePickerInput(
+            session = session,
+            inputId = 'GroupA',
+            selected = recordIDs
+          )
+          
+        }
+        
+        #A is filled, B is empty 
+        else if(!is.null(input$GroupA) & is.null(input$GroupB)) {
+          
+          rv$lastGroupFilled <- "B"
+          
+          updatePickerInput(
+            session = session,
+            inputId = 'GroupB',
+            selected = recordIDs
+          )
+          
+        }
+        
+        # both are filled, 
+        ## check for overlap -- only add net new to the appropriate group
+        else {
+          
+          if(rv$lastGroupFilled == "A") {
+            
+            # A was the last group filled, B is the target 
+            # find the overlapping items in selected and A vectors
+            recordIDs <- setdiff(recordIDs,input$GroupA)
+            
+            updatePickerInput(
+              session = session,
+              inputId = 'GroupB',
+              selected = recordIDs
+            )
+            
+            rv$lastGroupFilled <- "B"
+          } 
+          
+          else {
+            
+            # B was the last group filled, A is the target 
+            # find the overlapping items in selected and B vectors
+            recordIDs <- setdiff(recordIDs,input$GroupB)
+            
+            updatePickerInput(
+              session = session,
+              inputId = 'GroupA',
+              selected = recordIDs
+            )
+            
+            rv$lastGroupFilled <- "A"
+            
+          }
+
+        }
+
+      }
+
+    })
+
+
+    observeEvent(c(input$dismiss_groupselectmodal),{
+     
+      #modal is open and the dismiss button has been clicked 
+      if(rv$groupselectmodalstate == 1 & input$dismiss_groupselectmodal > 0) {
+        
+        # set state of modal back to closed 
+        rv$groupselectmodalstate <- 0
+        
+        removeModal()
+        
+      }
+     
+    })
+     
+    observeEvent(c(input$GroupA,input$GroupB),{
+      ### when 2 groups are filled in --- show the ability to compare groups
+      
+      if(length(input$GroupA) > 0 &  length(input$GroupB) > 0 ) {       
+        
+        if(input$GroupA != "" & input$GroupB != "") {
+          
+          updateSelectizeInput(
+            session = session,
+            inputId = "TutorialName",
+            selected = "BoxplotGroupComparison"
+          )
+          
+          updateSelectizeInput(
+            session = session,
+            inputId = "GroupAnalysisChoice", 
+            selected = "To another analyte"
+          )
+        
+          shinyjs::show("GroupAnalysisOptions")
+        
+        }
+        
+        else {
+          
+          shinyjs::hide("GroupAnalysisOptions")
+          
+        }
+
+      }
+
+      else {
+        
+        shinyjs::hide("GroupAnalysisOptions")
+       
+      }
+
+    })
+
+    observeEvent(c(input$GroupAnalysisChoice),{
+      
+      if(length(input$GroupAnalysisChoice) > 0 & input$GroupAnalysisChoice != "") {
+        # toggle button
+        shinyjs::enable("ShowGroupComparison")
+      } 
+      else {
+        # disable button
+        shinyjs::disable("ShowGroupComparison")
+      }
+    
+      rv$groupComparisonChoice <- input$GroupAnalysisChoice
+      
+      if(input$GroupAnalysisChoice=="To another analyte") {
+       
+        AnalyteComparisionChoices <- shared_FoldChangeData$data(withSelection = FALSE) %>%
+          filter(!Analyte %in% rv$selectedAnalyte$name ) %>%
+          select(Analyte) %>%
+          unique() %>%
+          arrange() %>%
+          pull()
+
+        updateSelectizeInput(
+          session = session, 
+          inputId = "AnalyteComparision",
+          choices = AnalyteComparisionChoices
+        )
+
+        shinyjs::hide("ComorbidityComparision")
+        shinyjs::hide("RunComorbidityComparision")
+        shinyjs::show("AnalyteComparision")
+
+      } 
+
+      else {
+        shinyjs::hide("AnalyteComparision")
+      }
+
+      if(input$GroupAnalysisChoice=="Comorbidity Frequency") {
+        shinyjs::hide("AnalyteComparision")
+        shinyjs::show("ComorbidityComparision")
+        shinyjs::show("RunComorbidityComparision")
+      }
+
+      else {
+        shinyjs::hide("ComorbidityComparision")
+      }
+      
+    })
+    
+    observeEvent(c(input$ComparisionIgnore),{
+      
+      validate(
+        need(input$ComparisionIgnore[1]>0,'')
+      )
+
+      # hide the options, scroll back up. 
+      shinyjs::hide("GroupAnalysisOptions")   
+      shinyjs::runjs(paste0('document.getElementById("',id,'-AnalyteBoxPlot").scrollIntoView(); '))
+       
+    })
+
+    
+    AnalyteComparisonDataset <- reactive({  
+
+      validate(
+        need(input$AnalyteComparision!='','')
+      )
+   
+      shared_dataWithFilters$data(withSelection = FALSE) %>%
+        filter(Analyte==input$AnalyteComparision) %>%
+        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
+               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
+        mutate(text = paste0(MeasuredValue)) %>%
+        mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
+        filter(!is.na(HighlightGroup))
+      
+    })
+    
+       
+    HighlightGroupComparisonDataset <- reactive({ 
+      
+      validate(
+        need(rv$groupComparisonChoice == input$GroupAnalysisChoice,''), 
+        need(input$GroupAnalysisChoice != "",'')
+      )
+      
+      dataframe <- shared_AnalyteDataset$data(withSelection = FALSE) %>%      
+        mutate(y = case_when(input$LogTransform==TRUE ~ log2(MeasuredValue), input$LogTransform==FALSE ~ MeasuredValue), 
+               y_label = case_when(input$LogTransform==TRUE ~ paste0("Log<sub>2</sub> ", Measurement), input$LogTransform==FALSE ~  Measurement )) %>%
+        mutate(text = paste0(MeasuredValue)) %>%
+        mutate(HighlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
+        filter(!is.na(HighlightGroup))
+      
+      
+      if(grepl('Sex',input$GroupAnalysisChoice)) {
+        
+        return(
+          dataframe %>%
+            group_by(HighlightGroup,Gender) %>%
+            summarise(n=n_distinct(LabID)) %>%
+            inner_join(
+              dataframe  %>%
+                group_by(HighlightGroup) %>%
+                summarise(All=n_distinct(record_id))
+              , on=c("HighlightGroup")
+            ) %>%
+            mutate(Percent = n / All) %>%
+            select(HighlightGroup,Gender,Percent) %>%
+            fillMissingGenderObservations(HighlightGroup,c("A","B")) %>%
+            spread(Gender,Percent) 
+        )
+
+      }
+
+      else if(grepl('Age',input$GroupAnalysisChoice)) {
+        
+        return(
+          dataframe %>%
+            select(HighlightGroup,AgeAtTimeOfVisit)
+          )
+
+      }
+
+      else if(grepl('analyte',input$GroupAnalysisChoice)) {        
+        
+      
+        dataframeB <- AnalyteComparisonDataset()
+       
+        return(rbind(dataframeB ,dataframe))
+        
+      }
+
+      else if(grepl('Comorb',input$GroupAnalysisChoice)) {
+        
+        return(
+          
+          ParticipantConditions %>%
+            filter(Condition %in% input$ComorbidityComparision ) %>%
+            mutate(HasConditionFlag = case_when(HasCondition=='True'~1, HasCondition=='False'~0)) %>%
+            select(LabID,Condition, HasCondition, HasConditionFlag) %>%
+            group_by(LabID) %>%
+            summarise(HasAnyConditionFlag = sum(HasConditionFlag)) %>%
+            mutate(HasAnyConditionFlag = ifelse(HasAnyConditionFlag>0,1,0)) %>%
+            drop_na() %>% 
+            right_join(dataframe,conditionData,by="LabID") %>%
+            select(LabID,HasAnyConditionFlag, HighlightGroup,y,y_label)
+        )
+
+      } 
+      
+      else {
+        return(NULL)
+      }
+
+    })
+      
+    output$AnalyteGroupComparisonPlot <- renderPlotly({
+      
+      validate(
+        need(rv$groupComparisonChoice == input$GroupAnalysisChoice,'')
+      )
+
+      dataframe <- HighlightGroupComparisonDataset()
+      
+      if(grepl('analyte',input$GroupAnalysisChoice)) {
+       
+        pval1 <- dataframe %>%
+          filter(Analyte==input$Analyte) %>%
+          getStatTestByKeyGroup(RecordID,Analyte,HighlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+          select(p.value) %>%
+          pull()
+        
+        pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod),'</b>')
+        
+        pval2 <- dataframe %>%
+          filter(Analyte==input$AnalyteComparision) %>%
+          getStatTestByKeyGroup(RecordID,Analyte,HighlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+          select(p.value) %>%
+          pull()
+       
+        pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod),'</b>')
+
+        p <- dataframe %>%
+          CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,HighlightGroup,Analyte,input$Analyte,y,y_label,text,TRUE,"AnalyteComparison") %>%
+          layout(
+            title = paste0("Comparison Between ",input$Analyte," and ",input$AnalyteComparision,""),
+            annotations = list(
+              list(
+                x = 0.225, 
+                y = 1.05, 
+                font = list(size = 16), 
+                text = pval1text,
+                xref = "paper", 
+                yref = "paper", 
+                xanchor = "center", 
+                yanchor = "bottom", 
+                showarrow = FALSE
+              ), 
+              list(
+                x = 0.775, 
+                y = 1.05, 
+                font = list(size = 16), 
+                text = pval2text,
+                xref = "paper", 
+                yref = "paper", 
+                xanchor = "center", 
+                yanchor = "bottom", 
+                showarrow = FALSE
+              )
+            )
+          ) 
+
+      }
+      
+      if(!is.null(p)) {
+        
+        p %>%
+          config(
+            displayModeBar = TRUE,
+            displaylogo = FALSE,
+            toImageButtonOptions = list(
+              format = "svg",
+              filename = paste0(appConfig$applicationName, " - Analyte Group Comparison ",format(Sys.time(),"%Y%m%d_%H%M%S")) ,
+              width = session$clientData[[paste0('output_',id,'-AnalyteGroupComparisonPlot_width')]],
+              height = session$clientData[[paste0('output_',id,'-AnalyteGroupComparisonPlot_height')]]
+            ),
+            modeBarButtons = list(
+              list("toImage")
+              #list(plotlyCustomIcons$BoxplotClear)
+            )
+          ) %>% onRender("function(el) { overrideModebarDivId(el); }")
+        
+      } 
+      
+      else {
+        
+        getBoxplotForEmptyData(text = "")
+        
+      }
+      
+    })
+    
+  })
+  
+  
+}
