@@ -564,7 +564,7 @@ KaryotypeServer <- function(id) {
       paste0(input$Platform,' Fold Change Data')
     })
     
-    shared_FoldChangeData <- SharedData$new(FoldChangeData)
+    shared_FoldChangeData <- SharedData$new(FoldChangeData, ~Analyte)
     
     FoldChangeDataTableData <- reactive({
       
