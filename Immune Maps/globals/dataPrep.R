@@ -41,7 +41,7 @@ ageGroups <- c("All","21 & Over")
 # 
 # Participant <- metadata %>%
 #   select(RecordID,Sex,Age,Status) %>%
-#   mutate(AgeGroup = case_when(Age == "Under 21" ~ "Under 21", Age != "Under 21" ~ "21 & Over")) %>%
+#   mutate(AgeGroup = case_when(Age < 21 ~ "Under 21", Age >= 21  ~ "21 & Over")) %>%
 #   select(RecordID,Sex,AgeGroup,Status) %>%
 #   unique()
 # 
