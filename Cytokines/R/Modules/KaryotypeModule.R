@@ -279,6 +279,29 @@ KaryotypeUI <- function(id) {
               )
             )
           )
+          # tabPanel(title = uiOutput(NS(id,"SelectedAnalyteRawDataTitle")),
+          #   id = NS(id,"AnalyteDataTablePanel"),
+          #   fluidRow(
+          #     box(
+          #       title = "",
+          #       id = NS(id,"AnalyteDataTablePanelBox"),
+          #       height="auto",
+          #       width = 11,
+          #       DT::dataTableOutput(NS(id,"AnalyteDataTable"))
+          #     )
+          #   )
+          # ),
+          # tabPanel(title = uiOutput(NS(id,"SelectedAnalyteHighlightGroupsDataTitle")),
+          #   fluidRow(
+          #     box(
+          #       title = "",
+          #       id = NS(id,"SelectedAnalyteRecordsDataTablePanel"),
+          #       height="auto",
+          #       width = 11,
+          #       DT::dataTableOutput(NS(id,"SelectedAnalyteRecordsDataTable"))
+          #     )
+          #   )
+          # )
         )
     )
   ) 
@@ -847,7 +870,42 @@ KaryotypeServer <- function(id) {
 
     })
         
-    # Karyotype Box Plot ####
+    output$SelectedAnalyteRawDataTitle <- renderText({
+      paste0(input$Analyte,' Data')
+    })
+   
+    output$AnalyteDataTable <- DT::renderDataTable({
+     
+      dataframe <- AnalyteDataset() %>%
+        select(-c(y,y_label,highlightGroup)) %>%
+        rename(!!groupVariable := GroupVariable) 
+
+      DT::datatable(
+        data = dataframe,
+        caption = htmltools::tags$caption(
+          style = 'caption-side: bottom; text-align: center;',
+          paste0(input$Analyte, ' Raw Data: '), htmltools::em(paste0('Raw Data for ',input$Analyte,' Box-Plot'))
+        ),
+        filter = 'top',
+        extensions = c('Buttons','ColReorder','Responsive','Scroller'),
+        options = list(
+          dom = 'Bfrtip',
+          colReorder = TRUE,
+          autowidth=TRUE,
+          deferRender = TRUE,
+          scrollY = 400,
+          scroller = TRUE,
+          scrollX =TRUE,
+          columnDefs = list(list(width = '200px', targets = "_all")),
+          pageLength = 10, 
+          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+        ), 
+        rownames = FALSE, 
+        style = 'bootstrap'
+      )
+    }, server=FALSE)    
+
+    # Box Plot ####
     output$AnalyteBoxPlot <- renderPlotly({
       
       dataset <- AnalyteDataset()
@@ -1189,57 +1247,15 @@ KaryotypeServer <- function(id) {
       analyteDataset <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$Analyte,input$LogTransform,input$GroupA,input$GroupB) %>%    
         mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
         filter(!is.na(highlightGroup))
-      
-      # sexData <- analyteDataset %>%
-      #     rename("Sex" = Gender) %>%
-      #     group_by(highlightGroup,Sex) %>%
-      #     summarise(n=n_distinct(LabID)) %>%
-      #     inner_join(
-      #       analyteDataset  %>%
-      #         group_by(highlightGroup) %>%
-      #         summarise(All=n_distinct(LabID))
-      #       , on=c("highlightGroup")
-      #     ) %>%
-      #     mutate(Percent = n / All) %>%
-      #     select(highlightGroup,Sex,Percent) %>%
-      #     CUSOMShinyHelpers::fillMissingSexObservations(highlightGroup,c("A","B")) %>%
-      #     spread(Sex,Percent) 
-      
-      # ageData <- analyteDataset %>%
-      #   select(highlightGroup,AgeAtTimeOfVisit)
-      
+           
       comparisonAnalyteDataset <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$AnalyteComparision,input$LogTransform,input$GroupA,input$GroupB) %>%
         mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
         filter(!is.na(highlightGroup)) 
-          
-      # comorbidityDataset <- ParticipantConditions %>%
-      #   filter(Condition %in% input$ComorbidityComparision ) %>%
-      #   mutate(HasConditionFlag = case_when(HasCondition=='True'~1, HasCondition=='False'~0)) %>%
-      #   select(LabID,Condition, HasCondition, HasConditionFlag) %>%
-      #   group_by(LabID) %>%
-      #   summarise(HasAnyConditionFlag = sum(HasConditionFlag)) %>%
-      #   mutate(HasAnyConditionFlag = ifelse(HasAnyConditionFlag>0,"Yes","No")) %>%
-      #   drop_na() %>% 
-      #   right_join(analyteDataset,conditionData,by="LabID") %>%
-      #   select(LabID,HasAnyConditionFlag, highlightGroup,y,y_label) %>%
-      #   left_join(
-      #     ParticipantConditions %>%
-      #       filter(Condition %in% input$ComorbidityComparision ) %>%
-      #       filter(HasCondition=='True') %>%
-      #       group_by(LabID) %>%
-      #       mutate(Conditions = paste0(Condition, collapse = "; ")) %>%
-      #       select(LabID,Conditions)
-      #     , by="LabID"
-      #   ) %>%
-      #   replace_na(list(Conditions=''))
-      
+                
       return(
         list(
         "analyteDataset" =  analyteDataset, 
-        # "sexData" = sexData, 
-        # "ageData" = ageData, 
         "comparisonAnalyteDataset" = comparisonAnalyteDataset
-        # "comorbidityDataset" = comorbidityDataset
         )
       )
     
@@ -1410,7 +1426,45 @@ KaryotypeServer <- function(id) {
       }
       
     }) 
-    
+
+    output$SelectedAnalyteHighlightGroupsDataTitle <- renderUI ({
+      paste0(input$Analyte,' Highlighted Groups Data')
+    })
+
+    output$SelectedAnalyteRecordsDataTable <- DT::renderDataTable({
+      
+      data <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$Analyte,input$LogTransform,input$GroupA,input$GroupB) %>%    
+        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
+        filter(!is.na(highlightGroup)) %>%
+        select(-c(y,y_label, text)) %>%
+        rename(!!groupVariable := GroupVariable) 
+      
+      DT::datatable(
+        data = data ,
+        caption = htmltools::tags$caption(
+          style = 'caption-side: bottom; text-align: center;',
+          paste0(input$Analyte,' Raw Data: '), htmltools::em(paste0('Raw Data for highlighted records on ',input$Analyte,' Box-Plot'))
+        ),
+        filter = 'top',
+        extensions = c('Buttons','ColReorder','Responsive','Scroller'),
+        options = list(
+          dom = 'Bfrtip',
+          colReorder = TRUE,
+          autowidth=FALSE,
+          deferRender = TRUE,
+          scrollX =TRUE,
+          scrollY = 400,
+          scroller = TRUE,
+          columnDefs = list(list(width = '200px', targets = "_all")),
+          pageLength = 10,
+          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+        ),
+        rownames = FALSE,
+        style = 'bootstrap'
+      )
+
+    }, server=FALSE)
+  
   })
   
   
