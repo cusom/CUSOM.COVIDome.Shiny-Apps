@@ -324,7 +324,6 @@ SeroconversionUI <- function(id) {
 }
 
 
-
 SeroconversionServer <- function(id) {
   
   moduleServer(id, function(input, output, session) {
@@ -470,8 +469,9 @@ SeroconversionServer <- function(id) {
       dataframe <- sourceData %>%
         filter(Platform==platform) %>%
         filter(Sex %in% sex) %>%
-        mutate(AgeGroup = case_when(ageGroup=="All" ~ "All", ageGroup !="All" ~ AgeGroup)) %>%
-        filter(AgeGroup == ageGroup) %>%
+        mutate(AgeGroupTemp = case_when(ageGroup=="All" ~ "All", ageGroup !="All" ~ AgeGroup)) %>%
+        filter(AgeGroupTemp == ageGroup) %>%
+        select(-AgeGroupTemp) %>%
         # Assign appropriate variable to more generic "Group Variable"
         rename(GroupVariable := !!groupVariable) %>%
         filter(!is.na(GroupVariable)) %>%
@@ -516,27 +516,11 @@ SeroconversionServer <- function(id) {
           session = shiny::getDefaultReactiveDomain()
         )
         
-        foldChange <- baseData %>%
-          CUSOMShinyHelpers::summarizeByGroup(MeasuredValue, Analyte, GroupVariable, na.rm = TRUE) %>%
-          CUSOMShinyHelpers::calculateFoldChangeByKeyGroup(Analyte, GroupVariable, median, baselineLabel,inf.rm = TRUE)
-        
-        update_modal_progress(
-          value = 2,
-          text = paste0("Running ",input$StatTest,"..."),
-          session = shiny::getDefaultReactiveDomain()
-        )
-        
-        statsData <- baseData %>%
-          mutate(log2MeasuredValue = log2(MeasuredValue)) %>%
-          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID,Analyte,GroupVariable,log2MeasuredValue,input$StatTest, input$AdjustmentMethod)
-        
-        update_modal_progress(
-          value = 3,
-          text = ifelse(input$AdjustmentMethod=="none",paste0("Running ",input$StatTest,"..."),paste0("Adjusting P Values using ",input$AdjustmentMethod," method...")),
-          session = shiny::getDefaultReactiveDomain()
-        )
-        
-        finalData <- inner_join(foldChange, statsData, by="Analyte") %>%
+        finalData <- baseData %>%
+          mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
+          mutate(GroupVariable = fct_relevel(GroupVariable, baselineLabel)) %>% # set ref level
+          select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, AgeGroup) %>% 
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, AgeGroup) %>%
           mutate(selected_ = ifelse(Analyte==input$Analyte,1,0)) %>%
           inner_join(
             sourceData %>%
@@ -594,7 +578,7 @@ SeroconversionServer <- function(id) {
       
       shared_FoldChangeData$data(withSelection = FALSE) %>%
         mutate(pvalueCutoff = case_when(input$PValue=="all" ~ 1 , input$PValue==" * P &le; 0.05" ~ 0.05, input$PValue==" ** P &le; 0.01" ~ 0.01 , input$PValue==" *** P &le; 0.001" ~ 0.001)) %>%
-        filter(log2Foldchange >= min(input$FoldChange), log2Foldchange <= max(input$FoldChange)) %>%
+        filter(log2FoldChange >= min(input$FoldChange), log2FoldChange <= max(input$FoldChange)) %>%
         filter(p.value <= pvalueCutoff) %>%
         select(-c(selected_,pvalueCutoff)) %>%
         CUSOMShinyHelpers::formatFoldChangeDataframe(baselineLabel = baselineLabel)
@@ -637,7 +621,7 @@ SeroconversionServer <- function(id) {
 
         ## gets a list of annotations / shapes / parameters 
         a <- dataframe %>% 
-              CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2Foldchange,
+              CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2FoldChange,
                                       pValueVar = `-log10pvalue`,
                                       selected = `selected_`,
                                       arrowLabelTextVar = Analyte,
@@ -648,7 +632,8 @@ SeroconversionServer <- function(id) {
         
         shinyjs::show("VolcanoContent")
         shinyjs::hide("VolcanoContentEmpty")   
-        shinyjs::hide("VolcanoStart")  
+        shinyjs::hide("VolcanoStart")
+        shinyjs::show("AnalyteContent")  
       
         dataframe %>%
           mutate(text = paste0("Cell Population:", Analyte,
@@ -656,11 +641,11 @@ SeroconversionServer <- function(id) {
                                "<br />fold_change:", round(FoldChange,2),
                                "<br />p-value",pValueSuffix,": ",formatC(p.value, format = "e", digits = 2))) %>%
 
-          CUSOMShinyHelpers::addSignificanceGroup(foldChangeVar = log2Foldchange,
+          CUSOMShinyHelpers::addSignificanceGroup(foldChangeVar = log2FoldChange,
                                    pValueVar = `-log10pvalue`, 
                                    threshold = a$parameters$pValueThresholdTransformed) %>%
           
-          CUSOMShinyHelpers::getVolcanoPlot(foldChangeVar = log2Foldchange,
+          CUSOMShinyHelpers::getVolcanoPlot(foldChangeVar = log2FoldChange,
                              pValueVar = `-log10pvalue`,
                              significanceGroup =  significanceGroup, 
                              text = text, 
@@ -797,30 +782,17 @@ SeroconversionServer <- function(id) {
     })
     
     observeEvent(c(input$Analyte),{
+
+      plotName <- paste0(id,"-VolcanoPlot")
    
       if (input$Analyte != '') {
-      
-        a <- shared_FoldChangeData$data(withSelection = FALSE) %>%
-          mutate(selected_ = case_when(Analyte==input$Analyte ~ 1)) %>%
-          CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2Foldchange,
-                                    pValueVar = `-log10pvalue`,
-                                    selected = `selected_`,
-                                    arrowLabelTextVar = Analyte,
-                                    upRegulatedText = volcanoTopAnnotationLabel
-          )
-
+             
         rv$selectedAnalyte$name <- input$Analyte
         rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\|", simplify = TRUE)[1]
 
-        plotName <- paste0(id,"-VolcanoPlot")
-                
-        keys <- paste0(input$Analyte,collapse = '|')
-        
-        shinyjs::runjs( paste0('updateVolcanoSelected("',plotName,'","',keys,'","|")') )
-       
-        plotlyProxy("VolcanoPlot", session) %>%
-          plotlyProxyInvoke("relayout", list(annotations = c(a$annotations,a$arrow)))
-
+        keys <- paste0(input$Analyte,collapse = '|')      
+        shinyjs::runjs(paste0('annotatePointByKey("',plotName,'","',keys,'",5);') )
+              
         shinyjs::show("AnalyteContent")
         shinyjs::show("LogTransform")
         shinyjs::show("ExternalLinks")
@@ -829,6 +801,10 @@ SeroconversionServer <- function(id) {
       }
 
       else {
+
+        keys <- ''
+        shinyjs::runjs(paste0('annotatePointByKey("',plotName,'","',keys,'",5);') ) 
+        shinyjs::runjs(paste0('clearSelectedPointsFromPlot("',plotName,'");') )
         shinyjs::hide("VolcanoContent")
         shinyjs::hide("AnalyteContent")
         shinyjs::hide("LogTransform")
@@ -875,13 +851,11 @@ SeroconversionServer <- function(id) {
       
     }
   
-    # # Reactive Data #### 
     AnalyteDataset <- reactive({ 
       
       validate(
         need(!is.na(input$Analyte),""),
         need(input$Analyte != "","")
-
       )
       
       dataframe <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$Analyte,input$LogTransform,input$GroupA,input$GroupB) 
@@ -1492,6 +1466,7 @@ SeroconversionServer <- function(id) {
       )
 
     }, server=FALSE)
+
 
   })
   
