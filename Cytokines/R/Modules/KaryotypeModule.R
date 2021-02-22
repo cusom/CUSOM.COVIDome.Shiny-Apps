@@ -543,7 +543,7 @@ KaryotypeServer <- function(id) {
 
     # change the fold change tab title based on platform
     output$FoldChangeDataTitle <- renderUI ({
-      paste0(input$Platform,' Fold Change Data')
+      paste0(input$Platform,' Aggregated Data')
     })
     
     shared_FoldChangeData <- SharedData$new(FoldChangeData)
@@ -552,6 +552,7 @@ KaryotypeServer <- function(id) {
       
       shared_FoldChangeData$data(withSelection = FALSE) %>%
         mutate(pvalueCutoff = case_when(input$PValue=="all" ~ 1 , input$PValue==" * P &le; 0.05" ~ 0.05, input$PValue==" ** P &le; 0.01" ~ 0.01 , input$PValue==" *** P &le; 0.001" ~ 0.001)) %>%
+        mutate(method = input$StatTest) %>%
         filter(log2FoldChange >= min(input$FoldChange), log2FoldChange <= max(input$FoldChange)) %>%
         filter(p.value <= pvalueCutoff) %>%
         select(-c(selected_,pvalueCutoff)) %>%
