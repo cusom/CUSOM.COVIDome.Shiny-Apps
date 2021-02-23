@@ -278,35 +278,34 @@ SeroconversionUI <- function(id) {
                 )
               )
             )
+          ),
+          tabPanel(title = uiOutput(NS(id,"SelectedAnalyteRawDataTitle")),
+            id = NS(id,"AnalyteDataTablePanel"),
+            fluidRow(
+              box(
+                title = "",
+                id = NS(id,"AnalyteDataTablePanelBox"),
+                height="auto",
+                width = 11,
+                withSpinner(DT::dataTableOutput(NS(id,"AnalyteDataTable")))
+              )
+            )
+          ),
+          tabPanel(title = uiOutput(NS(id,"SelectedAnalyteHighlightGroupsDataTitle")),
+            fluidRow(
+              box(
+                title = "",
+                id = NS(id,"SelectedAnalyteRecordsDataTablePanel"),
+                height="auto",
+                width = 11,
+                DT::dataTableOutput(NS(id,"SelectedAnalyteRecordsDataTable"))
+              )
+            )
           )
-          # tabPanel(title = uiOutput(NS(id,"SelectedAnalyteRawDataTitle")),
-          #   id = NS(id,"AnalyteDataTablePanel"),
-          #   fluidRow(
-          #     box(
-          #       title = "",
-          #       id = NS(id,"AnalyteDataTablePanelBox"),
-          #       height="auto",
-          #       width = 11,
-          #       DT::dataTableOutput(NS(id,"AnalyteDataTable"))
-          #     )
-          #   )
-          # ),
-          # tabPanel(title = uiOutput(NS(id,"SelectedAnalyteHighlightGroupsDataTitle")),
-          #   fluidRow(
-          #     box(
-          #       title = "",
-          #       id = NS(id,"SelectedAnalyteRecordsDataTablePanel"),
-          #       height="auto",
-          #       width = 11,
-          #       DT::dataTableOutput(NS(id,"SelectedAnalyteRecordsDataTable"))
-          #     )
-          #   )
-          # )
         )
     )
   ) 
 }
-
 
 SeroconversionServer <- function(id) {
   
@@ -316,7 +315,7 @@ SeroconversionServer <- function(id) {
     groupVariable <- "SeroconversionGroup"
     baselineLabel <- "Low"
     volcanoTopAnnotationLabel <- 'Up with Seroconversion'
-    analyteLabel <- "Seroconversion Status"
+    groupVariableLabel <- "Seroconversion Status"
 
     ### Reactive Values #
     rv <- reactiveValues(RunRefresh = -1, 
@@ -719,7 +718,7 @@ SeroconversionServer <- function(id) {
 
     output$VolcanoPlotTitle <- renderUI({
      
-      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of ',analyteLabel,' on all metabolites in ',input$Platform),'Please start by setting dataset options below')
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of ',groupVariableLabel,' on all metabolites in ',input$Platform),'Please start by setting dataset options below')
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
@@ -859,21 +858,42 @@ SeroconversionServer <- function(id) {
 
     })
         
+
+    GetAnalyteData <- function(platform,sex,ageGroup,analyte,groupA,groupB) {
+      
+      dataframe <- dataWithFilters(platform,sex,ageGroup)
+
+      if(analyte != "") {
+        dataframe <- dataframe %>% filter(Analyte == analyte)
+      } 
+      
+      measurement <- dataframe[1,'Measurement']
+     
+      dataframe <- dataframe %>%
+        mutate(highlightGroup = case_when(RecordID %in% groupA ~ "A", RecordID %in% groupB ~ "B")) %>%   
+        select(-c(AgeGroup,Measurement,Kit_Barcode,ExperimentID)) %>%
+        rename(`COVID-19 Status` = Status,`Highlight Group` = highlightGroup) %>%
+        select(RecordID,Analyte,Platform,Sex,`COVID-19 Status`,GroupVariable,`Highlight Group`,MeasuredValue) %>%
+        rename(!!groupVariableLabel := GroupVariable,!!rv$analyteLabel := Analyte, !!measurement := MeasuredValue)
+
+      return(dataframe)
+
+    }
+        
     output$SelectedAnalyteRawDataTitle <- renderText({
-      paste0(input$Analyte,' Data')
+      ifelse(input$Analyte=="",'All Sample Level Data',paste0('Sample Level Data for ', input$Analyte))
     })
    
     output$AnalyteDataTable <- DT::renderDataTable({
       
-      dataframe <- AnalyteDataset() %>%
-        select(-c(y,y_label,highlightGroup)) %>%
-        rename(!!groupVariable := GroupVariable) 
+      dataframe <- GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
+        select(-c(`Highlight Group`))
 
       DT::datatable(
         data = dataframe,
         caption = htmltools::tags$caption(
           style = 'caption-side: bottom; text-align: center;',
-          paste0(input$Analyte, ' Raw Data: '), htmltools::em(paste0('Raw Data for ',input$Analyte,' Box-Plot'))
+          paste0(input$Analyte, ' Data: '), htmltools::em(paste0(' Data for ',input$Analyte,' Box-Plot'))
         ),
         filter = 'top',
         extensions = c('Buttons','ColReorder','Responsive','Scroller'),
@@ -892,7 +912,7 @@ SeroconversionServer <- function(id) {
         rownames = FALSE, 
         style = 'bootstrap'
       )
-    }, server=FALSE)    
+    }, server=TRUE)    
 
     # Box Plot ####
     output$AnalyteBoxPlot <- renderPlotly({
@@ -911,7 +931,7 @@ SeroconversionServer <- function(id) {
           mutate(highlightGroup = case_when(RecordID %in% input$GroupA ~ "A", RecordID %in% input$GroupB ~ "B")) %>%
           select(key=RecordID,group=GroupVariable,value=y,valueLabel=y_label,text, highlightGroup) %>%
           CUSOMShinyHelpers::getBoxPlotWithHighlightGroup(key,group,baselineLabel,value,valueLabel,text,highlightGroup,colors=c("#3E99CD","#1D4D7C"), plotName=paste0(id,"Analyte") ) %>%
-          layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE),legend=list(title=list(text=paste0("<b>",analyteLabel,"</b>"))))  %>%
+          layout(xaxis = list(fixedrange = TRUE), yaxis = list(fixedrange = TRUE),legend=list(title=list(text=paste0("<b>",groupVariableLabel,"</b>"))))  %>%
           config(
             displayModeBar = TRUE,
             displaylogo = FALSE,
@@ -969,7 +989,7 @@ SeroconversionServer <- function(id) {
            
         HTML(
           paste0(
-            '<h3>Effect of ',analyteLabel,' on ',input$Analyte,' in ',input$Platform,'
+            '<h3>Effect of ',groupVariableLabel,' on ',input$Analyte,' in ',input$Platform,'
               <span onclick=\"launchTutorial(\'',id,'\',\'BoxPlot\')\"
                 data-toggle="tooltip"
                 data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
@@ -1284,21 +1304,36 @@ SeroconversionServer <- function(id) {
         if(nrow(comparisonDatasets$analyteDataset) > 0 & nrow(comparisonDatasets$comparisonAnalyteDataset) > 0 ) {
         
           analyteLabel <- comparisonDatasets$analyteDataset %>% select(Analyte) %>% unique() %>% pull()
+          
           pval1 <- comparisonDatasets$analyteDataset %>%
-            getStatTestByKeyGroup(RecordID,Analyte,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+            mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
+            mutate(GroupVariable = highlightGroup) %>%
+            mutate(GroupVariable = fct_relevel(GroupVariable, "A")) %>% # set ref level
+            select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, AgeGroup) %>%
+            CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, "A", log2MeasuredValue, method = input$StatTest, 
+                                                     adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, AgeGroup) %>%
             select(p.value) %>%
             pull()
+          
           pval1text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval1,input$AdjustmentMethod),'</b>')
           
+          
           comparisonLabel <- comparisonDatasets$comparisonAnalyteDataset %>% select(Analyte) %>% unique() %>% pull()
+          
           pval2 <- comparisonDatasets$comparisonAnalyteDataset %>%
-            getStatTestByKeyGroup(RecordID,Analyte,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+            mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
+            mutate(GroupVariable = highlightGroup) %>%
+            mutate(GroupVariable = fct_relevel(GroupVariable, "A")) %>% # set ref level
+            select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, AgeGroup) %>%
+            CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, "A", log2MeasuredValue, method = input$StatTest, 
+                                                     adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, AgeGroup) %>%
             select(p.value) %>%
             pull()
+          
           pval2text <- paste0('<b>',CUSOMShinyHelpers::formatPValue(pval2,input$AdjustmentMethod),'</b>')
           
           combinedData <- comparisonDatasets$analyteDataset %>%
-          bind_rows(comparisonDatasets$comparisonAnalyteDataset)
+            bind_rows(comparisonDatasets$comparisonAnalyteDataset)
         
           p <- combinedData %>%
             CUSOMShinyHelpers::getSideBySideGroupedBoxplot(RecordID,highlightGroup,Analyte,analyteLabel,y,y_label,text,TRUE,"AnalyteComparison") %>%
@@ -1417,22 +1452,19 @@ SeroconversionServer <- function(id) {
     }) 
 
     output$SelectedAnalyteHighlightGroupsDataTitle <- renderUI ({
-      paste0(input$Analyte,' Highlighted Groups Data')
+      paste0(input$Analyte,' Sample Level Data Highlighted Groups')
     })
 
     output$SelectedAnalyteRecordsDataTable <- DT::renderDataTable({
       
-      data <- getAnalyteDataset(input$Platform,input$Sex,input$AgeGroup,input$Analyte,input$LogTransform,input$GroupA,input$GroupB) %>%    
-        mutate(text = paste0(RecordID,'<br />',MeasuredValue)) %>%
-        filter(!is.na(highlightGroup)) %>%
-        select(-c(y,y_label, text)) %>%
-        rename(!!groupVariable := GroupVariable) 
+      dataframe <- GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
+        filter(!is.na(`Highlight Group`)) 
       
       DT::datatable(
-        data = data ,
+        data = dataframe ,
         caption = htmltools::tags$caption(
           style = 'caption-side: bottom; text-align: center;',
-          paste0(input$Analyte,' Raw Data: '), htmltools::em(paste0('Raw Data for highlighted records on ',input$Analyte,' Box-Plot'))
+          paste0(input$Analyte,' Sample Level Data: '), htmltools::em(paste0('Sample Level Data for highlighted records on ',input$Analyte,' Box-Plot'))
         ),
         filter = 'top',
         extensions = c('Buttons','ColReorder','Responsive','Scroller'),
