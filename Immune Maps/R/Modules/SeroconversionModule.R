@@ -518,8 +518,8 @@ SeroconversionServer <- function(id) {
         finalData <- baseData %>%
           mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
           mutate(GroupVariable = fct_relevel(GroupVariable, baselineLabel)) %>% # set ref level
-          select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, AgeGroup) %>% 
-          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, AgeGroup) %>%
+          select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, Age) %>% 
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, Age) %>%
           mutate(selected_ = ifelse(Analyte==input$Analyte,1,0)) %>%
           inner_join(
             sourceData %>%
