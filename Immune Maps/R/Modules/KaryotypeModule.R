@@ -18,7 +18,6 @@ KaryotypeUI <- function(id) {
             )
           )
         )
-        ,tags$hr()
         ,div(
           id=NS(id,"PlatformInput"),
           selectizeInput(
@@ -57,7 +56,6 @@ KaryotypeUI <- function(id) {
             )
           )
         )
-        ,tags$br()
         ,actionButton(NS(id,"VolcanoDatasetRefresh"), "Apply filters and generate plot", class = "refresh-btn")
         ,tags$hr()
         ,shinyjs::hidden(

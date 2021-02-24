@@ -18,7 +18,6 @@ KaryotypeUI <- function(id) {
             )
           )
         )
-        ,tags$hr()
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Platform",choices = sort(platforms), selected = platforms[1])
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests, selected = statTests[1], inline=FALSE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods ,selected = adjustmentMethods[1], inline=FALSE )
@@ -41,7 +40,6 @@ KaryotypeUI <- function(id) {
             )
           )
         )
-        ,tags$br()
         ,actionButton(NS(id,"VolcanoDatasetRefresh"), "Apply filters and generate plot", class = "refresh-btn")
         ,tags$hr()
         ,shinyjs::hidden(

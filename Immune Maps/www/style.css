@@ -164,3 +164,10 @@
   display: -webkit-box;
   display: flex;
 }
+
+section.sidebar .shiny-input-container {
+	/* Proper spacing around inputs. */
+	padding: 5px 15px 0px 15px;
+	/* Wrap content (important for inline inputs). */
+	white-space: normal;
+  }
