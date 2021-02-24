@@ -1,7 +1,7 @@
 X	namespace	tutorialName	tutorialTitle	element	intro	position
 1	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-Dataset-Options.sidebar-text	To render the volcano plot, start by setting dataset options below:	right
 2	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-Platform	Choose a Platform	right
-3	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-StatTest	Choose a statistical test to compare groups 	right
+3	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-StatTest	Choose a statistical test to compare groups. Linear Model adjusts for Age and Sex as covariates. Other methods are pairwise comparisons. 	right
 4	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-AdjustmentMethod	Optionally, choose an adjustment method to correct for multiple comparisons	right
 5	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-Sex	Optionally, select Sex(es)	right
 6	Karyotype	DatasetOptions	DatasetOptions	#Karyotype-AgeGroup	Optionally, select an Age Group	right
@@ -20,7 +20,7 @@ X	namespace	tutorialName	tutorialTitle	element	intro	position
 19	Karyotype	BoxplotGroupComparison	BoxplotGroupComparison	#Karyotype-AnalyteBoxPlot-modebar > div.modebar-group:nth-child(5) > a:nth-child(1)	Click this button at any point to clear the group selections from this plot	top
 1	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-Dataset-Options.sidebar-text	To render the volcano plot, start by setting dataset options below:	right
 2	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-Platform	Choose a Platform	right
-3	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-StatTest	Choose a statistical test to compare groups 	right
+3	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-StatTest	Choose a statistical test to compare groups. Linear Model adjusts for Age and Sex as covariates. Other methods are pairwise comparisons. 	right
 4	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-AdjustmentMethod	Optionally, choose an adjustment method to correct for multiple comparisons	right
 5	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-Sex	Optionally, select Sex(es)	right
 6	Seroconversion	DatasetOptions	DatasetOptions	#Seroconversion-AgeGroup	Optionally, select an Age Group	right
