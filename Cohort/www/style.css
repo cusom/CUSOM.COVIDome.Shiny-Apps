@@ -160,6 +160,10 @@
   background-attachment: fixed;
 }
 
+.header-dropdown-icon {
+	color: black;
+  }
+
 .t-heroImage.advancedHeroImage {
   display: -webkit-box;
   display: flex;
