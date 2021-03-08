@@ -48,7 +48,7 @@ OverviewServer <- function(id) {
           <br />
           <br />
           You can read a detailed description of the COVIDome dataset and the building of the COVIDome Explorer in our paper under review 
-          <b><a href="" target="_blank">here</a></b> 
+          <b><a href="https://www.medrxiv.org/content/10.1101/2021.03.04.21252945v1" target="_blank">here</a></b> 
           <br />
           <br />
           You can read our paper in press describing how seroconversion stages COVID19 pathology into distinct pathophysiological states 
