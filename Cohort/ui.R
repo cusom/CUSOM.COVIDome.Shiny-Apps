@@ -37,7 +37,7 @@ ui <- dashboardPagePlus(
     ),
   
   body = dashboardBody(
-    ifelse(isDeployed && isProductionApp,tags$head(includeHTML(("www/google-analytics.html"))),''),
+    tags$head(includeHTML(("www/google-analytics.html"))),
     tags$head(HTML('<meta name="robots" content="noindex">')),
     tags$head(HTML("<script type='text/javascript' src='appHelpers.js'></script>")),
     tags$style("@import url(https://use.fontawesome.com/releases/v5.15.1/css/all.css);"),
