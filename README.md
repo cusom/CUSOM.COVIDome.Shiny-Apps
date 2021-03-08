@@ -138,7 +138,22 @@ ui <- dashboardPagePlus(
                    appConfig$projectName, 
                    style =  "color:#000000;"),
     titleWidth =  appConfig$titleWidth,
-    left_menu = CUSOMShinyHelpers::createApplicationLinks(dropdownlinks)
+    left_menu = CUSOMShinyHelpers::createApplicationLinks(dropdownlinks), 
+    dropdownMenu(
+      type = "messages",
+      badgeStatus = NULL,
+      icon = icon("fas fa-question-circle fa-lg", class = "header-dropdown-icon"),
+      headerText = "Application Information",
+      tags$li(
+        a(href = "https://github.com/cusom/CUSOM.COVIDome.Shiny-Apps",
+          target = "_blank",
+          tagAppendAttributes(
+            icon("fab fa-github"), class = "text-info"),
+          "COVIDome Explorer Project"
+          ), 
+        p("Documentation, Source, Citation")
+      )
+    )
   ),
   
   sidebar = dashboardSidebar(
