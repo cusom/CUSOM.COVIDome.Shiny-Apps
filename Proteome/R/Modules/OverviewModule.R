@@ -14,7 +14,7 @@ OverviewUI <- function(id) {
               id = NS(id,"Overview"),
               height= "auto",
               width = "auto", 
-              withSpinner(uiOutput(NS(id,"Overview")),type = 4)
+              withSpinner(htmlOutput(NS(id,"Overview")),type = 4)
             )
           )
         )

@@ -775,7 +775,7 @@ SeroconversionServer <- function(id) {
 
         keys <- ''
         shinyjs::runjs(paste0('annotatePointByKey("',plotName,'","',keys,'",5);') ) 
-        shinyjs::runjs(paste0('clearSelectedPointsFromPlot("',plotName,'");') )
+        # shinyjs::runjs(paste0('clearSelectedPointsFromPlot("',plotName,'");') )
         shinyjs::hide("VolcanoContent")
         shinyjs::hide("AnalyteContent")
         shinyjs::hide("LogTransform")
