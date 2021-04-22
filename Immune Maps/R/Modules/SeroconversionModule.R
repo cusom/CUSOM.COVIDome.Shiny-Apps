@@ -453,6 +453,18 @@ SeroconversionServer <- function(id) {
      
     })
 
+    observeEvent(c(input$StatTest),{
+     #soft-lauch -- keep hidden 
+     if(input$StatTest == "Linear Model") {
+       shinyjs::hide("CovariateInput")
+     } 
+      
+      else {
+        shinyjs::hide("CovariateInput")
+      }  
+       
+    })
+
     # change plots tab title based on chosen platform
     output$PlotsTitle <- renderUI({
       paste0(input$Platform,' Plots')
@@ -517,7 +529,7 @@ SeroconversionServer <- function(id) {
           mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
           mutate(GroupVariable = fct_relevel(GroupVariable, baselineLabel)) %>% # set ref level
           select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, Age) %>% 
-          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, Age) %>%
+          CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates ) %>% 
           mutate(selected_ = ifelse(Analyte==input$Analyte,1,0)) %>%
           inner_join(
             sourceData %>%
@@ -617,6 +629,11 @@ SeroconversionServer <- function(id) {
       
       if(!is.null(dataframe)) {
 
+        shinyjs::show("VolcanoContent")
+        shinyjs::hide("VolcanoContentEmpty")   
+        shinyjs::hide("VolcanoStart")
+        shinyjs::show("AnalyteContent") 
+
         ## gets a list of annotations / shapes / parameters 
         a <- dataframe %>% 
               CUSOMShinyHelpers::getVolcanoAnnotations(foldChangeVar = log2FoldChange,
@@ -625,19 +642,14 @@ SeroconversionServer <- function(id) {
                                       arrowLabelTextVar = Analyte,
                                       upRegulatedText = volcanoTopAnnotationLabel
                                       )
-       
-        pValueSuffix <- ifelse(a$parameters$pValueAdjustedInd,"(adj) ","")
-        
-        shinyjs::show("VolcanoContent")
-        shinyjs::hide("VolcanoContentEmpty")   
-        shinyjs::hide("VolcanoStart")
-        shinyjs::show("AnalyteContent")  
-      
+ 
         dataframe %>%
           mutate(text = paste0("Cell Population:", Analyte,
                                "<br />Definition:",Definition,
                                "<br />fold_change:", round(FoldChange,2),
-                               "<br />p-value",pValueSuffix,": ",formatC(p.value, format = "e", digits = 2))) %>%
+                               "<br />",CUSOMShinyHelpers::formatPValue(p.value,a$parameters$adjustmentMethod) 
+                                )
+                  ) %>%
 
           CUSOMShinyHelpers::addSignificanceGroup(foldChangeVar = log2FoldChange,
                                    pValueVar = `-log10pvalue`, 
@@ -651,7 +663,7 @@ SeroconversionServer <- function(id) {
                              plotName = id) %>%
 
           layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = FALSE)) %>%
-          layout(yaxis = list(title=paste0("p-value ",pValueSuffix,"(-log<sub>10</sub>)"),fixedrange = FALSE)) %>%
+          layout(yaxis = list(title=paste0(ifelse(a$parameters$pValueAdjustedInd,"q-value ","p-value "),"(-log<sub>10</sub>)"),fixedrange = FALSE)) %>%
           layout(shapes=a$shapes) %>%
           layout(annotations=c(a$annotations,a$arrow)) %>%
           layout(margin = list( t = 60)) %>%
