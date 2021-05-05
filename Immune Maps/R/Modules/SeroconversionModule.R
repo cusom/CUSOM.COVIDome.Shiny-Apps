@@ -36,6 +36,10 @@ SeroconversionUI <- function(id) {
           )
         )
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests, selected = statTests[1], inline=FALSE )
+        ,div(
+          id=NS(id,"CovariateInput"),
+          CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Covariates"),label = "Adjust for:", choices = c("Sex","Age") , selected = c("Sex","Age"), inline=TRUE )
+        )
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods ,selected = adjustmentMethods[1], inline=FALSE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
         ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups[1], inline=TRUE )
@@ -454,9 +458,9 @@ SeroconversionServer <- function(id) {
     })
 
     observeEvent(c(input$StatTest),{
-     #soft-lauch -- keep hidden 
+
      if(input$StatTest == "Linear Model") {
-       shinyjs::hide("CovariateInput")
+       shinyjs::show("CovariateInput")
      } 
       
       else {
