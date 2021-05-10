@@ -1337,9 +1337,9 @@ SeroconversionServer <- function(id) {
             mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
             mutate(GroupVariable = highlightGroup) %>%
             mutate(GroupVariable = fct_relevel(GroupVariable, "A")) %>% # set ref level
-            select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, AgeGroup) %>%
+            select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, Age) %>%
             CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, "A", log2MeasuredValue, method = input$StatTest, 
-                                                     adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, AgeGroup) %>%
+                                                     adjustmentMethod = input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates) %>%
             select(p.value) %>%
             pull()
           
@@ -1352,9 +1352,9 @@ SeroconversionServer <- function(id) {
             mutate(log2MeasuredValue = ifelse(MeasuredValue==0,0,log2(MeasuredValue))) %>%
             mutate(GroupVariable = highlightGroup) %>%
             mutate(GroupVariable = fct_relevel(GroupVariable, "A")) %>% # set ref level
-            select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, AgeGroup) %>%
+            select(RecordID, Analyte, log2MeasuredValue, GroupVariable, Sex, Age) %>%
             CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, "A", log2MeasuredValue, method = input$StatTest, 
-                                                     adjustmentMethod = input$AdjustmentMethod, GroupVariable, Sex, AgeGroup) %>%
+                                                     adjustmentMethod = input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates) %>%
             select(p.value) %>%
             pull()
           
@@ -1408,7 +1408,7 @@ SeroconversionServer <- function(id) {
         
         pval1 <- comparisonDatasets$comorbidityDataset %>%
           filter(HasAnyConditionFlag=="Yes") %>%
-          getStatTestByKeyGroup(RecordID,HasAnyConditionFlag,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+          getStatTestByKeyGroup(RecordID,HasAnyConditionFlag,highlightGroup,y,input$StatTest,input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates) %>%
           select(p.value) %>%
           pull()
         
@@ -1416,7 +1416,7 @@ SeroconversionServer <- function(id) {
         
         pval2 <- comparisonDatasets$comorbidityDataset %>%
           filter(HasAnyConditionFlag=="No") %>%
-          getStatTestByKeyGroup(RecordID,HasAnyConditionFlag,highlightGroup,y,input$StatTest,input$AdjustmentMethod) %>%
+          getStatTestByKeyGroup(RecordID,HasAnyConditionFlag,highlightGroup,y,input$StatTest,input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates) %>%
           select(p.value) %>%
           pull()
         
