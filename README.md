@@ -42,30 +42,28 @@ Immune Map
   │-- server.R
   |-- global.R
   |-- dependencies.R
+  |-- renv.LOCK
   └───config
-    |-- appConfig.tsv
+    |-- config.yml
     |-- dropdownlinks.tsv
     |-- plotlyCustomIcons.rds
     |-- sidebarMenuItems.tsv
     |-- tutorials.tsv
-  └───Data 
-    |-- sourceData.rds
-    |-- dataFile1
-    |-- dataFile2
-    |-- dataFileN
   └───globals
+    |-- _queryUtils.R
     |-- globalScript1.R
     |-- globalScript2.R
     |-- globalScriptN.R
-  └───packrat
-    |--init.R
-    |--packrat.lock
-    |--packrat.opts 
   └───R
     └───Modules 
       |-- moduleScript1.R
       |-- moduleScript2.R
-      |-- moduleScriptN.R        
+      |-- moduleScriptN.R 
+  └───renv
+    └───library
+    └───local
+    └───staging
+    |-- activate.R
   └───rsconnect
     └───shinyapps.io
       └───<accountName>
@@ -83,7 +81,6 @@ Immune Map
       |--image1
       |--image2
       |--imageN
-
   |--.Rprofile
   |--<AppName>.RProj
 ```
@@ -168,7 +165,7 @@ ui <- dashboardPagePlus(
     ),
   
   body = dashboardBody(
-    ifelse(isDeployed && isProductionApp,tags$head(includeHTML(("www/google-analytics.html"))),''),
+    tags$head(includeHTML("www/google-analytics.html")),
     tags$head(HTML('<meta name="robots" content="noindex">')),
     tags$head(HTML("<script type='text/javascript' src='appHelpers.js'></script>")),
     tags$style("@import url(https://use.fontawesome.com/releases/v5.15.1/css/all.css);"),
@@ -232,9 +229,51 @@ Application Styling
 
 Google Analytics 
 
-
 ### Application configuration
 #### Application Configurations
+
+Config.yml
+The application makes use for the `cofig` package (https://cran.r-project.org/web/packages/config/vignettes/introduction.html) to read configuration values from a local configuration file: `config.yml`. Configurations include:
+- Application properties like name, label, UI sizing 
+- Database connection properties 
+
+``` yml
+default:
+  appConfig: 
+    applicationID: <APPLICATION ID>
+    applicationName: <APPLICATION NAME>
+    applicationLabel: <APPLICATION LABEL>
+    Environment: 'Production'
+    titleWidth: 300 
+    sidebarWidth: 280
+    debug: 0
+    applicationURL: 'https://medschool.cuanschutz.edu/covidome'
+    applicationImageURL: ''
+    projectName: 'COVIDome Explorer'  
+local:
+  dataconnection:
+    driver: 'ODBC Driver 13 for SQL Server'
+    server: 'localhost'
+    database: <DATABASENAME>
+    uid: <USERNAME>
+    pwd: <PASSWORD>
+    port: 1433
+    Encrypt: 'yes'
+    TrustServerCertificate: 'no'
+    Connection Timeout: 30
+shinyapps:
+  dataconnection:
+    driver: 'FreeTDS'
+    TDS_Version: 8.0
+    server: <REMOTE SERVER NAME>
+    database: <REMOTE DATABASE NAME>
+    uid: <USERNAME>
+    pwd: <PASSWORD>
+    port: 1433
+    Encrypt: 'yes'
+    TrustServerCertificate: 'no'
+    Connection Timeout: 30
+```
 
 Dropdown Links 
 
@@ -244,43 +283,71 @@ Tutorials
 
 plotly Custom Icons 
 
-### Packrat
+### renv
 #### Package Requirements 
-These projects use `Packrat` to manage package dependencies. 
-> https://www.r-project.org/nosvn/pandoc/packrat.html
+These projects use `renv` to manage package dependencies. 
+> https://rstudio.github.io/renv/articles/renv.html
 
-> https://rstudio.github.io/packrat/
-
-`Packrat` will generate a `packrat.lock` file under the `packrat` directory that includes the specific package requirements for the project:
+`renv` will generate a `renv.lock` file under the project root directory that includes the specific package requirements for the project:
 ```` .lock
-Package: BH
-Source: CRAN
-Version: 1.69.0-1
-Hash: 15f597ed227897f4f793b6161260f4b9
-
-Package: DT
-Source: CRAN
-Version: 0.6
-Hash: 0ce85f84c88eec265dc0292df098b3c6
-Requires: crosstalk, htmltools, htmlwidgets, magrittr, promises
-
-Package: RODBC
-Source: CRAN
-Version: 1.3-15
-Hash: 79cddc0b6f14b128f3b67a48c2bffd2f
+{
+  "R": {
+    "Version": "3.6.2",
+    "Repositories": [
+      {
+        "Name": "CRAN",
+        "URL": "https://cloud.r-project.org"
+      }
+    ]
+  },
+  "Packages": {
+    "BH": {
+      "Package": "BH",
+      "Version": "1.75.0-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e4c04affc2cac20c8fec18385cd14691"
+    },
+    "CUSOMShinyHelpers": {
+      "Package": "CUSOMShinyHelpers",
+      "Version": "1.4.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "CUSOM.ShinyHelpers",
+      "RemoteUsername": "cusom",
+      "RemoteRef": "v1.4.1",
+      "RemoteSha": "8efa52317f40c1a7a0f2e26a848556d3d9151319",
+      "Hash": "6c1728312d865ba8883a3e86041f2a25"
+    },
+    "DBI": {
+      "Package": "DBI",
+      "Version": "1.1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "030aaec5bc6553f35347cbb1e70b1a17"
+    },
+    "DT": {
+      "Package": "DT",
+      "Version": "0.18",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a7d6660c869d4f41f856504828af4645"
+    }, 
+    ...
 ````
 
 ## Collaboration Workflow
 The basic workflow to collaborating with projects that have package dependencies is as follows:
 
 1. Clone the project locally. 
-2. Ensure you have installed the `packrat` package. Run the following `r` script in the console:
+2. Ensure you have installed the `renv` package. Run the following `r` script in the console:
 ```` r 
-install.packages("packrat")
+install.packages("renv")
 ````
 3. Populate the local package library. Run the following `r` script in the console:
  ```` r
-packrat::restore()
+renv::restore()
  ````
 
 ### Core Packages Used 
