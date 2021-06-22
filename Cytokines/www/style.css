@@ -73,16 +73,55 @@
 	background-position: center;
 }
 
+.tutorial-btn {
+	background-color: #1e8bf0;
+	border-color: #1e8bf0;
+	color:#fff;
+	width: 90%;
+  	text-align: center;
+}
+
+.tutorial-btn:hover {
+	background-color: #51a5f3;
+	border-color: #51a5f3;
+	color:#fff;
+}
+
+
+.refresh-btn-label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 5px;
+  font-weight: 700;
+  margin-left: 15px;
+}
 
 .refresh-btn {
-	background-color: #f39c12;
-	border-color: #e08e0b;
-	width: 80%;
+	background-color: #fe7400;
+	border-color: #fc8523;
+	width: 90%;
+  	text-align: center;
+	color: #fff;
 }
 
 .refresh-btn:hover {
-	background-color: #f39c12;
-	border-color: #e08e0b;
+	background-color: #fe7400;
+	border-color: #fc8523;
+	color: #fff;
+}
+
+.refresh-ready-btn {
+	background-color: #15b94c;
+	border-color: #14ca51;
+	color: #fff;	
+	width: 90%;
+  	text-align: center;
+}
+
+.refresh-ready-btn:hover {
+	background-color: #73ee9c;
+	border-color: #14ca51;
+	color: #fff;
 }
 
 .bootstrap-select .dropdown-menu li a.opt {
@@ -140,6 +179,16 @@
 	text-align: justify;
   }
   
+.overviewHeaderDev {	
+	font-family: HelveticaNeueLTW05-85Heavy,"Source Sans Pro",Helvetica,Arial,sans-serif;
+	font-weight: initial;
+	font-size:30px;
+	letter-spacing:1.1px;
+	line-height:1.1;
+	color: rgb(243, 7, 7);
+	text-align: center;
+  }
+
 .body {
 	font-family: Arial,Helvetica,sans-serif;
 	font-size: 14px;
@@ -167,12 +216,16 @@
 }
 
 .header-dropdown-icon {
-  color: black;
-}
+	color: black;
+  }
 
 section.sidebar .shiny-input-container {
-  /* Proper spacing around inputs. */
-  padding: 5px 15px 0px 15px;
-  /* Wrap content (important for inline inputs). */
-  white-space: normal;
+	/* Proper spacing around inputs. */
+	padding: 0px 15px 0px 15px;
+	/* Wrap content (important for inline inputs). */
+	white-space: normal;
+}
+
+.form-group {
+	margin-bottom: 10px;
 }

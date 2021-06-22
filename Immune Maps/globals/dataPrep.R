@@ -1,20 +1,26 @@
-sourceData <- readRDS('Data/sourceData.rds')
-
-Platforms <- sourceData %>%
-  group_by(Platform) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n)) %>%
-  select(Platform) %>%
-  ungroup() %>%
+Platforms <- getDataframeFromDatabase("[covidome].[GetApplicationPlatforms] ?",tibble("ApplicationID"= appConfig$applicationID)) %>%
+  filter(!str_detect(Platform,"Live")) %>%
+  arrange() %>%
   pull()
 
-recordIDs <- unique(sourceData$RecordID)
+Platforms <- c("Live cells",Platforms)
 
-sexes <- sourceData %>%
-  select(Sex) %>%
-  unique() %>%
+recordIDs <- getDataframeFromDatabase("SELECT distinct RecordID FROM [covidome].[vw_Participant]",NULL) %>% 
+  pull() 
+
+sexes <- getDataframeFromDatabase("SELECT distinct Sex FROM [covidome].[vw_Participant]",NULL) %>% 
   pull()
 
 ageGroups <- c("All","21 & Over")
 
+covidPositiveRecords <- getDataframeFromDatabase("SELECT distinct [RecordID] FROM [covidome].[vw_Participant] WHERE [Status] = 'Positive'",NULL)
+
+Queryplatforms <- getDataframeFromDatabase("[covidome].[GetQueryPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID)) %>%
+  filter(str_detect(QueryPlatform,"Live")) %>%
+  filter(str_detect(QueryPlatform,"Immune")) %>%
+  pull()
+
+Comparisonplatforms <- getDataframeFromDatabase("[covidome].[GetComparisonPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID)) %>%
+  arrange(ComparisonPlatform) %>%
+  pull() 
 

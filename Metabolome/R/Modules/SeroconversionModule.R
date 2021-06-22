@@ -6,7 +6,7 @@ SeroconversionUI <- function(id) {
           id=NS(id,"Dataset-Options"),class="sidebar-text",
           HTML(
             paste0(
-              '<h3>Dataset Options 
+              '<h4>Dataset Options 
                 <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
                   data-toggle="tooltip" 
                   data-placement="auto right" 
@@ -14,19 +14,65 @@ SeroconversionUI <- function(id) {
                   class="fas fa-info-circle gtooltip"
                   data-original-title="Click here to learn about setting dataset options">
                 </span>
-              </h3>'
+              </h4>'
             )
           )
         )
-        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"Platform"),label = "Specimen Type",choices = sort(platforms), selected = platforms[1])
-        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"StatTest"),label = "Statistical Test", choices = statTests, selected = statTests[1], inline=FALSE )
+        ,CUSOMShinyHelpers::createInputControl(
+          controlType = "radioButtons", 
+          inputId = NS(id,"Platform"),
+          label = "Platform",
+          choices = sort(platforms), 
+          selected = platforms[1]
+        )
+        ,CUSOMShinyHelpers::createInputControl(
+          controlType = "pickerInput", 
+          inputId = NS(id,"StatTest"),
+          label = "Statistical Test", 
+          choices = statTests, 
+          selected = statTests[1], 
+          inline=FALSE 
+        )
         ,div(
           id=NS(id,"CovariateInput"),
-          CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Covariates"),label = "Adjust for:", choices = c("Sex","Age") , selected = c("Sex","Age"), inline=TRUE )
+          CUSOMShinyHelpers::createInputControl(
+            controlType = "checkboxGroupInput", 
+            inputId = NS(id,"Covariates"),
+            label = "Adjust for:", 
+            choices = c("Sex","Age") ,
+            selected = c("Sex","Age"), 
+            inline=TRUE 
+          )
         )
-        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AdjustmentMethod"),label = "Adjustment Method", choices = adjustmentMethods ,selected = adjustmentMethods[1], inline=FALSE )
-        ,CUSOMShinyHelpers::createInputControl(controlType = "checkboxGroupInput", inputId = NS(id,"Sex"),label = "Sex", choices = sexes ,selected = sexes, inline=TRUE )
-        ,CUSOMShinyHelpers::createInputControl(controlType = "radioButtons", inputId = NS(id,"AgeGroup"),label = "Age Group", choices = ageGroups ,selected = ageGroups[1], inline=TRUE )
+        ,CUSOMShinyHelpers::createInputControl(
+          controlType = "pickerInput",
+          inputId = NS(id,"AdjustmentMethod"),
+          label = "Adjustment Method", 
+          choices = adjustmentMethods,
+          selected = adjustmentMethods[1], 
+          inline=FALSE 
+          )
+        ,CUSOMShinyHelpers::createInputControl(
+          controlType = "checkboxGroupInput", 
+          inputId = NS(id,"Sex"),
+          label = "Sex", 
+          choices = sexes,
+          selected = sexes, 
+          inline=TRUE 
+        )
+        ,CUSOMShinyHelpers::createInputControl(
+          controlType = "radioButtons", 
+          inputId = NS(id,"AgeGroup"),
+          label = "Age Group", 
+          choices = ageGroups,
+          selected = ageGroups[1], 
+          inline=TRUE 
+        )
+        ,actionButton(
+          NS(id,"VolcanoDatasetRefresh"), 
+          "Apply filters and generate plot", 
+          class = "refresh-btn"
+        )
         ,div(
           id=NS(id,"AnalyteInput"),
           selectizeInput(
@@ -44,7 +90,6 @@ SeroconversionUI <- function(id) {
             )
           )
         )
-        ,actionButton(NS(id,"VolcanoDatasetRefresh"), "Apply filters and generate plot", class = "refresh-btn")
         ,tags$hr()
         ,shinyjs::hidden(
           div(
@@ -92,7 +137,14 @@ SeroconversionUI <- function(id) {
                     status = "primary", 
                     solidHeader = FALSE, 
                     collapsible = TRUE,
-                    withSpinner(plotlyOutput(NS(id,"VolcanoPlot"),height = "678px"))
+                    withLoader(
+                      plotlyOutput(
+                        NS(id,"VolcanoPlot"),
+                        height = "678px"
+                      ), 
+                      type = "html",
+                      loader = "dnaspin"
+                    )
                   )
                 ),
                 shinyjs::hidden(
@@ -142,17 +194,40 @@ SeroconversionUI <- function(id) {
                       solidHeader = FALSE, 
                       collapsible = TRUE,         
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "primarySwitch", inputId = NS(id,"LogTransform"),label = HTML("Show as Log<sub>2</sub> Transformed?"), status="primary", value=TRUE)
-                        ),
+                        CUSOMShinyHelpers::createInputControl(
+                          controlType = "primarySwitch", 
+                          inputId = NS(id,"LogTransform"),
+                          label = HTML("Show as Log<sub>2</sub> Transformed?"), 
+                          status="primary", 
+                          value=TRUE
+                        )
+                      ),
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupA"),label = "Group A", choices = recordIDs, selected = NULL, multiple = TRUE )
-                        ),
+                        CUSOMShinyHelpers::createInputControl(
+                          controlType = "pickerInput", 
+                          inputId = NS(id,"GroupA"),
+                          label = "Group A", 
+                          choices = recordIDs, 
+                          selected = NULL, 
+                          multiple = TRUE 
+                        )
+                      ),
                       shinyjs::hidden(
-                        CUSOMShinyHelpers::createInputControl(controlType = "pickerInput", inputId = NS(id,"GroupB"),label = "Group B", choices = recordIDs, selected = NULL, multiple = TRUE )
-                        ),                  
-                      withSpinner(plotlyOutput(NS(id,"AnalyteBoxPlot"),height = "626px"))                   
+                        CUSOMShinyHelpers::createInputControl(
+                          controlType = "pickerInput", 
+                          inputId = NS(id,"GroupB"),
+                          label = "Group B", 
+                          choices = recordIDs, 
+                          selected = NULL, 
+                          multiple = TRUE 
+                        )
+                      ),                  
+                      withSpinner(
+                        plotlyOutput(NS(id,"AnalyteBoxPlot"),
+                        height = "626px")
+                      )                   
                     )                   
-                  ), 
+                  ),
                   shinyjs::hidden(
                   div(
                     id = NS(id,"AnalyteContentEmpty"),
@@ -365,12 +440,17 @@ SeroconversionServer <- function(id) {
       if(input$TutorialName != '' & rv$ignoreTutorial == 0) {
         
         introjs(session = session, options=list(steps=tutorialSteps()))
+
+        updateSelectizeInput(
+          session = session,
+          inputId = "TutorialName",
+          selected = ""
+        )
         
       }
       
     })  
       
- 
     tutorialSteps <- reactive({
       
       tutorials %>%
@@ -391,18 +471,18 @@ SeroconversionServer <- function(id) {
 
     observeEvent(c(input$Platform),{
      
-      if(input$Platform == 'Plasma') {
+      if(grepl('Plasma',input$Platform)) {
 
-        placeholder <- "Metabolite"             
+        rv$analytePlaceholder <- "Metabolite"         
         AnalyteLabel <- "Metabolite"
         rv$analyteLabel <- "Metabolite"
         analyteChoices <- PlasmaMetabolites
       
       }
       
-      if(input$Platform=='Red Blood Cells') {
+      if(grepl('RBC',input$Platform)) {
         
-        placeholder <- "Metabolite"
+        rv$analytePlaceholder <- "Metabolite"
         AnalyteLabel <- "Metabolite"
         rv$analyteLabel <- "Metabolite"
         analyteChoices <- RedBloodCellMetabolites
@@ -415,7 +495,7 @@ SeroconversionServer <- function(id) {
         label = AnalyteLabel,
         choices = analyteChoices, 
         options = list(
-          placeholder = placeholder,
+          placeholder = rv$analytePlaceholder,
           onInitialize = I('function() { this.setValue(""); }'), 
           closeAfterSelect = TRUE, 
           selectOnTab = TRUE, 
@@ -451,7 +531,6 @@ SeroconversionServer <- function(id) {
     })
 
     observeEvent(c(input$StatTest),{
- 
      if(input$StatTest == "Linear Model") {
        shinyjs::show("CovariateInput")
      } 
@@ -472,12 +551,12 @@ SeroconversionServer <- function(id) {
       
       groupVariable <- enquo(groupVariable)
       
-      dataframe <- sourceData %>%
-        filter(Platform==platform) %>%
+      dataframe <- getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform, "ReturnAdjusted"= 0)) %>%
         filter(Sex %in% sex) %>%
         mutate(AgeGroupTemp = case_when(ageGroup=="All" ~ "All", ageGroup !="All" ~ AgeGroup)) %>%
         filter(AgeGroupTemp == ageGroup) %>%
         select(-AgeGroupTemp) %>%
+        filter(outlier == FALSE) %>%
         # Assign appropriate variable to more generic "Group Variable"
         rename(GroupVariable := !!groupVariable) %>%
         filter(!is.na(GroupVariable)) %>%
@@ -493,33 +572,21 @@ SeroconversionServer <- function(id) {
     }
 
     FoldChangeData <- eventReactive(c(input$VolcanoDatasetRefresh), {
+
+      shinyjs::hide("VolcanoTutorialStart")
+      shinyjs::hide("VolcanoStart")
+      shinyjs::hide("AnalyteContent")
+      shinyjs::hide("LogTransform")
+      shinyjs::hide("ExternalLinks")
       
       baseData <- dataWithFilters(input$Platform, input$Sex,input$AgeGroup)
       
       if(!is.null(baseData)) { 
-
-        shinyjs::hide("AnalyteContent")
-        shinyjs::hide("LogTransform")
-        shinyjs::hide("ExternalLinks")
-        shinyjs::hide("VolcanoStart")
-
-        show_modal_progress_circle(
-            value = 0,
-            text = "Generating Volcano Plot...",
-            color = "#3c8dbc",
-            stroke_width = 4,
-            easing = "linear",
-          
-            trail_color = "#eee",
-            trail_width = 1,
-            height = "200px",
-            session = shiny::getDefaultReactiveDomain()
-          )
-          
-        update_modal_progress(
-          value = 1,
-          text = "Calculating Fold Change...",
-          session = shiny::getDefaultReactiveDomain()
+      
+        show_modal_spinner(
+          spin = "atom",
+          color = "#3c8dbc",
+          text = "Generating Volcano Plot..."
         )
         
         finalData <- baseData %>%
@@ -529,12 +596,7 @@ SeroconversionServer <- function(id) {
           CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates ) %>%
           mutate(selected_ = ifelse(Analyte==input$Analyte,1,0))
 
-        update_modal_progress(
-          value = 4,
-          text = "Finalizing plot...",
-          session = shiny::getDefaultReactiveDomain()
-        )
-          
+        
         if("error" %in% colnames(finalData)) {
           
           rv$errorMessage <- paste0('Error running ',unique(finalData$method),': ',  unique(finalData$error))
@@ -549,10 +611,10 @@ SeroconversionServer <- function(id) {
 
         }
 
-        remove_modal_progress(session = getDefaultReactiveDomain())
+        remove_modal_spinner()
             
         rv$RunRefresh <- 0
-        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
+        rv$selectedAnalyte$searchName <- CUSOMShinyHelpers::parseDelimitedString(input$Analyte,1) 
         rv$Platform <- input$Platform
         
         return(finalData)
@@ -620,9 +682,9 @@ SeroconversionServer <- function(id) {
       
       if(!is.null(dataframe)) {
 
-        shinyjs::show("VolcanoContent")
         shinyjs::hide("VolcanoContentEmpty")
         shinyjs::hide("VolcanoStart")
+        shinyjs::show("VolcanoContent")
         shinyjs::show("AnalyteContent")
         
         ## gets a list of annotations / shapes / parameters 
@@ -638,7 +700,8 @@ SeroconversionServer <- function(id) {
           mutate(text = paste0("Metabolite:", Analyte,
                                "<br />fold_change:", round(FoldChange,2),
                                "<br />",CUSOMShinyHelpers::formatPValue(p.value,a$parameters$adjustmentMethod) 
-                                )
+                                ), 
+                 shape = "NA"
                   ) %>%
 
           CUSOMShinyHelpers::addSignificanceGroup(foldChangeVar = log2FoldChange,
@@ -650,6 +713,7 @@ SeroconversionServer <- function(id) {
                              significanceGroup =  significanceGroup, 
                              text = text, 
                              key = Analyte, 
+                             shape = shape,
                              plotName = id) %>%
           
           layout(xaxis = list(title="Fold Change (log<sub>2</sub>)",fixedrange = FALSE)) %>%
@@ -732,7 +796,7 @@ SeroconversionServer <- function(id) {
 
     output$VolcanoPlotTitle <- renderUI({
      
-      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of ',groupVariableLabel,' on all metabolites in ',input$Platform),'Please start by setting dataset options below')
+      title <- ifelse(input$VolcanoDatasetRefresh,paste0('Effect of ',groupVariableLabel,' on all metabolites in ',input$Platform),'Please start by setting dataset options')
       
       tutorial <- ifelse(input$VolcanoDatasetRefresh,'VolcanoPlot','DatasetOptions')
       
@@ -788,7 +852,7 @@ SeroconversionServer <- function(id) {
       if (input$Analyte != '') {
                
         rv$selectedAnalyte$name <- input$Analyte
-        rv$selectedAnalyte$searchName <- str_split(input$Analyte, "\\:", simplify = TRUE)[1]
+        rv$selectedAnalyte$searchName <- CUSOMShinyHelpers::parseDelimitedString(input$Analyte,1)  
               
         keys <- paste0(input$Analyte,collapse = '|')       
         shinyjs::runjs(paste0('annotatePointByKey("',plotName,'","',keys,'",5);') )
@@ -800,7 +864,7 @@ SeroconversionServer <- function(id) {
       
       }
 
-      else {
+      if (input$Analyte=="" && rv$selectedAnalyte$name=="") {
 
         keys <- ''
         shinyjs::runjs(paste0('annotatePointByKey("',plotName,'","',keys,'",5);') ) 
@@ -810,6 +874,11 @@ SeroconversionServer <- function(id) {
         shinyjs::hide("LogTransform")
         shinyjs::hide("ExternalLinks")
         shinyjs::show("VolcanoStart")
+        
+      }
+
+      if(input$Analyte=="") {
+        shinyjs::hide("LogTransform")
       }
 
     })
@@ -878,14 +947,15 @@ SeroconversionServer <- function(id) {
       dataframe <- dataWithFilters(platform,sex,ageGroup)
 
       if(analyte != "") {
-        dataframe <- dataframe %>% filter(Analyte == analyte)
+        dataframe <- dataframe %>% 
+          filter(Analyte == analyte)
       } 
       
       measurement <- dataframe[1,'Measurement']
      
       dataframe <- dataframe %>%
         mutate(highlightGroup = case_when(RecordID %in% groupA ~ "A", RecordID %in% groupB ~ "B")) %>%   
-        select(-c(AgeGroup,Measurement,Kit_Barcode,ExperimentID)) %>%
+        select(-c(AgeGroup,Measurement)) %>%
         rename(`COVID-19 Status` = Status,`Highlight Group` = highlightGroup) %>%
         select(RecordID,Analyte,Platform,Sex,`COVID-19 Status`,GroupVariable,`Highlight Group`,MeasuredValue) %>%
         rename(!!groupVariableLabel := GroupVariable,!!rv$analyteLabel := Analyte, !!measurement := MeasuredValue)
@@ -1216,7 +1286,7 @@ SeroconversionServer <- function(id) {
           filter(!Analyte %in% rv$selectedAnalyte$name ) %>%
           select(Analyte) %>%
           unique() %>%
-          arrange() %>%
+          arrange(Analyte) %>%
           pull()
 
         updateSelectizeInput(

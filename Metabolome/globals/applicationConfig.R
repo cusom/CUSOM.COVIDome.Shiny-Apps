@@ -3,7 +3,7 @@ storeWarn <- getOption("warn")
 options(warn = -1)
 
 # get App metadata
-appConfig <- read_tsv('./config/appConfig.tsv',col_types = cols())
+appConfig <- config::get(file = "config/config.yml","appConfig") 
 
 isProductionApp <- ifelse(appConfig$Environment=="Production",TRUE,FALSE)
 
@@ -27,5 +27,6 @@ statTests <- CUSOMShinyHelpers::getStatTestByKeyGroup.methods
 
 adjustmentMethods <- c("none","Bonferroni","Benjamini-Hochberg (FDR)")
 
+pValueThreshold <- 0.05
 
 
