@@ -18,15 +18,15 @@
     },
     "CUSOMShinyHelpers": {
       "Package": "CUSOMShinyHelpers",
-      "Version": "1.4.1",
+      "Version": "1.4.2",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "CUSOM.ShinyHelpers",
       "RemoteUsername": "cusom",
-      "RemoteRef": "v1.4.1",
-      "RemoteSha": "8efa52317f40c1a7a0f2e26a848556d3d9151319",
-      "Hash": "6c1728312d865ba8883a3e86041f2a25"
+      "RemoteRef": "v1.4.2",
+      "RemoteSha": "158eff604ef0320291af7dc73fdc9542569ff905",
+      "Hash": "a98ec1ab9c50b7bf1b08205ced91bc1b"
     },
     "DBI": {
       "Package": "DBI",

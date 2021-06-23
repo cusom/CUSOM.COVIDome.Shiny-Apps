@@ -537,8 +537,8 @@ KaryotypeServer <- function(id) {
     dataWithFilters <- function(platform,sex,ageGroup) { 
       
       groupVariable <- enquo(groupVariable)
-     
-      dataframe <- getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform, "ReturnAdjusted"= 0)) %>%
+      
+      dataframe <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform, "ReturnAdjusted"= 0),conn_args = conn_args) %>%
         filter(Sex %in% sex) %>%
         mutate(AgeGroupTemp = case_when(ageGroup=="All" ~ "All", ageGroup !="All" ~ AgeGroup)) %>%
         filter(AgeGroupTemp == ageGroup) %>%

@@ -481,7 +481,7 @@ KaryotypeServer <- function(id) {
     
     observeEvent(c(input$Platform),{
       
-      analyteChoices <- getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0)) %>%
+      analyteChoices <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0),conn_args = conn_args) %>%
         select(Analyte) %>%
         unique() %>%
         arrange() %>%
@@ -552,7 +552,7 @@ KaryotypeServer <- function(id) {
       
       groupVariable <- enquo(groupVariable)
       
-      dataframe <- getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform, "ReturnAdjusted"= 0)) %>%
+      dataframe <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform, "ReturnAdjusted"= 0),conn_args = conn_args) %>%
         filter(Sex %in% sex) %>%
         mutate(AgeGroupTemp = case_when(ageGroup=="All" ~ "All", ageGroup !="All" ~ AgeGroup)) %>%
         filter(AgeGroupTemp == ageGroup) %>%
@@ -597,7 +597,7 @@ KaryotypeServer <- function(id) {
           CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates ) %>%   
           mutate(selected_ = ifelse(Analyte==input$Analyte,1,0)) %>%
           inner_join(
-            getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0)) %>%
+            CUSOMShinyHelpers::FromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0),conn_args = conn_args) %>%
               select(Platform,Analyte) %>%
               unique(), 
             by="Analyte"

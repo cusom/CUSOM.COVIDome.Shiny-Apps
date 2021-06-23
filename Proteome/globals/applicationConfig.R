@@ -5,6 +5,8 @@ options(warn = -1)
 # get App metadata
 appConfig <- config::get(file = "config/config.yml","appConfig") 
 
+conn_args <- config::get(file = "config/config.yml", "dataconnection")
+
 isProductionApp <- ifelse(appConfig$Environment=="Production",TRUE,FALSE)
 
 isDeployed <-  Sys.getenv('SHINY_PORT') != ""

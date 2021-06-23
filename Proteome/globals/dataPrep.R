@@ -1,33 +1,33 @@
-platforms <- getDataframeFromDatabase("[covidome].[GetApplicationPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID)) %>%
+platforms <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetApplicationPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID),conn_args=conn_args) %>%
   arrange() %>%
   pull()
 
-recordIDs <- getDataframeFromDatabase("SELECT distinct RecordID FROM [covidome].[vw_Participant]",NULL) %>% 
+recordIDs <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT distinct RecordID FROM [covidome].[vw_Participant]",NULL,conn_args=conn_args) %>% 
   pull() 
 
-sexes <- getDataframeFromDatabase("SELECT distinct Sex FROM [covidome].[vw_Participant]",NULL) %>% 
+sexes <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT distinct Sex FROM [covidome].[vw_Participant]",NULL,conn_args=conn_args) %>% 
   pull()
 
 ageGroups <- c("All","21 & Over")
 
-covidPositiveRecords <- getDataframeFromDatabase("SELECT distinct [RecordID] FROM [covidome].[vw_Participant] WHERE [Status] = 'Positive'",NULL)
+covidPositiveRecords <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT distinct [RecordID] FROM [covidome].[vw_Participant] WHERE [Status] = 'Positive'",NULL,conn_args=conn_args)
 
-Queryplatforms <- getDataframeFromDatabase("[covidome].[GetQueryPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID)) %>%
+Queryplatforms <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetQueryPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID),conn_args=conn_args) %>%
   arrange(QueryPlatform) %>%
   pull() 
 
-Comparisonplatforms <- getDataframeFromDatabase("[covidome].[GetComparisonPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID)) %>%
+Comparisonplatforms <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetComparisonPlatforms] ?",tibble("ApplicationID"=appConfig$applicationID),conn_args=conn_args) %>%
   arrange(ComparisonPlatform) %>%
   pull() 
 
-proteins <- getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [AllDataMSProt] = 1",NULL) %>%
+proteins <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [AllDataMSProt] = 1",NULL,conn_args=conn_args) %>%
   select(Analyte) %>%
   arrange(Analyte) %>%
   unique() %>%
   pull() %>%
   data.table()
 
-Queryproteins <- getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [CorrelationMSProt] = 1",NULL)  %>%
+Queryproteins <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [CorrelationMSProt] = 1",NULL,conn_args=conn_args)  %>%
   select(Analyte) %>%
   arrange(Analyte) %>%
   unique() %>%
@@ -37,14 +37,14 @@ Queryproteins <- getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM
 setnames(proteins, "Protein")
 setnames(Queryproteins, "Protein")
 
-aptamers <- getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [AllDataSOMA] = 1",NULL) %>%
+aptamers <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [AllDataSOMA] = 1",NULL,conn_args=conn_args) %>%
   select(Analyte) %>%
   arrange(Analyte) %>%
   unique() %>%
   pull() %>%
   data.table()
 
-Queryaptamers <- getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [CorrelationSOMA] = 1",NULL) %>%
+Queryaptamers <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT AnalyteName as [Analyte]  FROM [covidome].[Analyte] (nolock) WHERE [CorrelationSOMA] = 1",NULL,conn_args=conn_args) %>%
   select(Analyte) %>%
   arrange(Analyte) %>%
   unique() %>%
