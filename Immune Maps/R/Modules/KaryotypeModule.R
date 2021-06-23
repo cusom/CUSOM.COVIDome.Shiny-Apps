@@ -425,12 +425,6 @@ KaryotypeServer <- function(id) {
                          )  
 
     observeEvent(input$TutorialName, {
-      
-      updateSelectizeInput(
-        session = session,
-        inputId = "TutorialName",
-        selected = input$TutorialName
-      )
 
       #keep track of times each tutorial has been shown...
       if(input$TutorialName=="BoxplotGroupComparison") {
@@ -459,7 +453,7 @@ KaryotypeServer <- function(id) {
         
       }
       
-    })   
+    },ignoreInit=TRUE)   
       
     tutorialSteps <- reactive({
       
@@ -477,11 +471,11 @@ KaryotypeServer <- function(id) {
       shinyjs::hide("VolcanoContentEmpty")
       shinyjs::hide("AnalyteContentEmpty")
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$Platform),{
       
-      analyteChoices <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0),conn_args = conn_args) %>%
+      analyteChoices <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetAnalytesByPlatform] ?",tibble("Platform" = input$Platform),conn_args = conn_args) %>%
         select(Analyte) %>%
         unique() %>%
         arrange() %>%
@@ -597,7 +591,7 @@ KaryotypeServer <- function(id) {
           CUSOMShinyHelpers::getStatTestByKeyGroup(RecordID, Analyte, GroupVariable, baselineLabel, log2MeasuredValue, method = input$StatTest, adjustmentMethod = input$AdjustmentMethod, regressor = GroupVariable, covariates = input$Covariates ) %>%   
           mutate(selected_ = ifelse(Analyte==input$Analyte,1,0)) %>%
           inner_join(
-            CUSOMShinyHelpers::FromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0),conn_args = conn_args) %>%
+            CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[GetDataByPlatform] ?, ?",tibble("Platform" = input$Platform,"ReturnAdjusted" = 0),conn_args = conn_args) %>%
               select(Platform,Analyte) %>%
               unique(), 
             by="Analyte"
@@ -850,7 +844,7 @@ KaryotypeServer <- function(id) {
         selected = e$key
       )
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$Analyte),{
 
@@ -1219,7 +1213,7 @@ KaryotypeServer <- function(id) {
 
       }
 
-    })
+    },ignoreInit=TRUE)
 
     observeEvent(c(input$dismiss_groupselectmodal),{
      
@@ -1233,7 +1227,7 @@ KaryotypeServer <- function(id) {
         
       }
      
-    })
+    },ignoreInit=TRUE)
      
     observeEvent(c(input$GroupA,input$GroupB),{
       ### when 2 groups are filled in --- show the ability to compare groups
@@ -1272,7 +1266,7 @@ KaryotypeServer <- function(id) {
        
       }
 
-    })
+    },ignoreInit=TRUE)
 
     observeEvent(c(input$GroupAnalysisChoice),{
       
@@ -1322,7 +1316,7 @@ KaryotypeServer <- function(id) {
         shinyjs::hide("ComorbidityComparision")
       }
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$ComparisionIgnore),{
       
@@ -1333,10 +1327,10 @@ KaryotypeServer <- function(id) {
       # hide the options, scroll back up. 
       shinyjs::hide("GroupAnalysisOptions")   
       shinyjs::runjs(paste0('document.getElementById("',id,'-AnalyteBoxPlot").scrollIntoView(); '))
-       
-    })
+        
+    },ignoreInit=TRUE)
 
-  ComparisonDatasets <- reactive({
+    ComparisonDatasets <- reactive({
 
       validate(
         need(rv$groupComparisonChoice == input$GroupAnalysisChoice,''),    

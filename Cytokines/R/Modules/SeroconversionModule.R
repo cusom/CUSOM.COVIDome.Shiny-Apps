@@ -416,12 +416,6 @@ SeroconversionServer <- function(id) {
     
     observeEvent(input$TutorialName, {
       
-      updateSelectizeInput(
-        session = session,
-        inputId = "TutorialName",
-        selected = input$TutorialName
-      )
-      
       #keep track of times each tutorial has been shown...
       if(input$TutorialName=="BoxplotGroupComparison") {
         
@@ -449,7 +443,7 @@ SeroconversionServer <- function(id) {
         
       }
       
-    })   
+    },ignoreInit=TRUE)  
        
     tutorialSteps <- reactive({
       
@@ -467,7 +461,7 @@ SeroconversionServer <- function(id) {
       shinyjs::hide("VolcanoContentEmpty")
       shinyjs::hide("AnalyteContentEmpty")
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$Platform),{
       
@@ -830,7 +824,7 @@ SeroconversionServer <- function(id) {
         selected = e$key
       )
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$Analyte),{
 
@@ -1199,7 +1193,7 @@ SeroconversionServer <- function(id) {
         
       }
       
-    })
+    },ignoreInit=TRUE)
       
     observeEvent(c(input$dismiss_groupselectmodal),{
       
@@ -1213,7 +1207,7 @@ SeroconversionServer <- function(id) {
         
       }
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$GroupA,input$GroupB),{
       ### when 2 groups are filled in --- show the ability to compare groups
@@ -1252,7 +1246,7 @@ SeroconversionServer <- function(id) {
         
       }
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$GroupAnalysisChoice),{
       
@@ -1302,7 +1296,7 @@ SeroconversionServer <- function(id) {
         shinyjs::hide("ComorbidityComparision")
       }
       
-    })
+    },ignoreInit=TRUE)
     
     observeEvent(c(input$ComparisionIgnore),{
       
@@ -1314,7 +1308,7 @@ SeroconversionServer <- function(id) {
       shinyjs::hide("GroupAnalysisOptions")   
       shinyjs::runjs(paste0('document.getElementById("',id,'-AnalyteBoxPlot").scrollIntoView(); '))
       
-    })
+    },ignoreInit=TRUE)
     
     ComparisonDatasets <- reactive({
 

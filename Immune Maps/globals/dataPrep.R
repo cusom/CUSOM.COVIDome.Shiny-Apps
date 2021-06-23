@@ -24,3 +24,11 @@ Comparisonplatforms <- CUSOMShinyHelpers::getDataframeFromDatabase("[covidome].[
   arrange(ComparisonPlatform) %>%
   pull() 
 
+QueryAnalytes <- CUSOMShinyHelpers::getDataframeFromDatabase("SELECT AnalyteName as [Analyte] FROM [covidome].[Analyte] (nolock) WHERE [CorrelationImmune] = 1",NULL,conn_args=conn_args) %>%
+  select(Analyte) %>%
+  arrange(Analyte) %>%
+  unique() %>%
+  pull() %>%
+  data.table()
+
+setnames(QueryAnalytes,"Cell Population")
