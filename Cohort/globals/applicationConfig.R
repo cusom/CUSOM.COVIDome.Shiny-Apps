@@ -3,7 +3,7 @@ storeWarn <- getOption("warn")
 options(warn = -1)
 
 # get App metadata
-appConfig <- read_tsv('./config/appConfig.tsv',col_types = cols())
+appConfig <- config::get(file = "config/config.yml","appConfig") 
 
 isProductionApp <- ifelse(appConfig$Environment=="Production",TRUE,FALSE)
 
@@ -18,15 +18,4 @@ namespaces <- as.list(sideBarMenuItems$tabName)
 tabs <- as.list(sideBarMenuItems$tabName)    
 
 dropdownlinks <- read_tsv("./config/dropdownlinks.tsv",col_types = cols())
-
-tutorials <- read_tsv("./config/tutorials.tsv",col_types = cols())
-
-plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
-
-statTests <- CUSOMShinyHelpers::getStatTestByKeyGroup.methods
-
-adjustmentMethods <- c("none","Bonferroni","Benjamini-Hochberg (FDR)")
-
-pValueThreshold <- 0.05
-
 
