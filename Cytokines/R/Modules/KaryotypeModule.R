@@ -6,17 +6,29 @@ KaryotypeUI <- function(id) {
           id=NS(id,"Dataset-Options"),class="sidebar-text",
           HTML(
             paste0(
-              '<h4>Dataset Options 
-                <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
+              '<h4>Set Dataset Options
+                <span  
                   data-toggle="tooltip" 
                   data-placement="auto right" 
                   title="" 
-                  class="fas fa-info-circle gtooltip"
-                  data-original-title="Click here to learn about setting dataset options">
+                  class="fas fa-filter"
+                  data-original-title="Set options below to generate volcano plot">
                 </span>
               </h4>'
             )
           )
+        ),
+        actionButton(
+            NS(id,"PrimaryTutorial"), 
+            label = "Take Tutorial", 
+            class ="tutorial-btn", 
+            icon = icon("question-circle")
+        )
+        ,bsTooltip(
+          id = NS(id,"PrimaryTutorial"),
+          title = "Click here to learn about setting dataset options to generate the volcano plot",
+          placement = "top",
+          trigger = "hover"
         )
         ,CUSOMShinyHelpers::createInputControl(
           controlType = "radioButtons", 
@@ -70,8 +82,9 @@ KaryotypeUI <- function(id) {
         )
         ,actionButton(
           NS(id,"VolcanoDatasetRefresh"), 
-          "Apply filters and generate plot", 
-          class = "refresh-btn"
+          label = "Generate Volcano Plot", 
+          class = "refresh-ready-btn",
+          icon = icon("play")
         )
         ,div(
           id=NS(id,"AnalyteInput"),
@@ -94,12 +107,34 @@ KaryotypeUI <- function(id) {
         ,shinyjs::hidden(
           div(
             id = NS(id,"ExternalLinks"), class="sidebar-text-overflow"
-            ,htmlOutput(NS(id,"ExternalLinksText"))              
-            ,actionLink(inputId = NS(id,"Pubmed"), label = "Pubmed", icon = icon("external-link-alt"))
-            ,actionLink(inputId = NS(id,"GeneCards"), label = "GeneCards",icon = icon("external-link-alt"))
-            ,actionLink(inputId = NS(id,"GTEx"), label = "GTEx",icon = icon("external-link-alt"))
-            ,actionLink(inputId = NS(id,"NCBI"), label = "NCBI",icon = icon("external-link-alt"))
-            ,actionLink(inputId = NS(id,"Wikipedia"), label = "Wikipedia", icon = icon("external-link-alt"))
+            ,htmlOutput(
+              NS(id,"ExternalLinksText")
+            )              
+            ,actionLink(
+              inputId = NS(id,"Pubmed"), 
+              label = "Pubmed", 
+              icon = icon("external-link-alt")
+            )
+            ,actionLink(
+              inputId = NS(id,"GeneCards"), 
+              label = "GeneCards",
+              icon = icon("external-link-alt")
+            )
+            ,actionLink(
+              inputId = NS(id,"GTEx"), 
+              label = "GTEx",
+              icon = icon("external-link-alt")
+            )
+            ,actionLink(
+              inputId = NS(id,"NCBI"), 
+              label = "NCBI",
+              icon = icon("external-link-alt")
+            )
+            ,actionLink(
+              inputId = NS(id,"Wikipedia"), 
+              label = "Wikipedia", 
+              icon = icon("external-link-alt")
+            )
           )
         )
         ,shinyjs::hidden(
@@ -123,14 +158,19 @@ KaryotypeUI <- function(id) {
     "Outputs" = 
       list(
         tabsetPanel(
-          tabPanel(title = uiOutput(NS(id,"PlotsTitle")),   
+          tabPanel(
+            title = uiOutput(
+              NS(id,"PlotsTitle")
+            ),   
             fluidRow(
               column(
                 width=6,
                 div(
                   id = NS(id,"VolcanoContent"),
                   boxPlus(
-                    title = htmlOutput(NS(id,"VolcanoPlotTitle")),
+                    title = htmlOutput(
+                      NS(id,"VolcanoPlotTitle")
+                    ),
                     height = "auto",
                     width = "auto",
                     closable = FALSE, 
@@ -152,14 +192,21 @@ KaryotypeUI <- function(id) {
                     id = NS(id,"VolcanoContentEmpty"),
                     boxPlus(
                       id = NS(id,"VolcanoContentEmptyBox"),
-                      title = htmlOutput(NS(id,"VolcanoContentEmptyTitle")),
+                      title = htmlOutput(
+                        NS(id,"VolcanoContentEmptyTitle")
+                      ),
                       height= "auto",
                       width = "auto",
                       closable = FALSE, 
                       status = "primary", 
                       solidHeader = FALSE, 
                       collapsible = TRUE,                       
-                      withSpinner(uiOutput(NS(id,"VolcanoEmptyText"),height = "630px"))                   
+                      withSpinner(
+                        uiOutput(
+                          NS(id,"VolcanoEmptyText"),
+                          height = "630px"
+                        )
+                      )                    
                     ) 
                   )
                 ), 
@@ -168,15 +215,38 @@ KaryotypeUI <- function(id) {
                     id = NS(id,"VolcanoStart"),
                     boxPlus(
                       id = NS(id,"VolcanoStartBox"),
-                      title = htmlOutput(NS(id,"VolcanoStartTitle")),
+                      title = htmlOutput(
+                        NS(id,"VolcanoStartTitle")
+                      ),
                       height= "auto",
                       width = "auto",
                       closable = FALSE, 
                       status = "primary", 
                       solidHeader = FALSE, 
                       collapsible = TRUE,                       
-                      withSpinner(uiOutput(NS(id,"VolcanoStartText"),height = "630px"))                   
+                      withSpinner(
+                        uiOutput(
+                          NS(id,"VolcanoStartText"),
+                          height = "630px"
+                        )
+                      )                   
                     ) 
+                  )
+                ),
+                div(
+                  id = NS(id,"VolcanoTutorialStart")
+                  ,style = "padding-left: 10%;"
+                  ,actionButton(
+                    NS(id,"SecondaryTutorial"), 
+                    label = "Take Tutorial", 
+                    class ="tutorial-btn", 
+                    icon = icon("question-circle")
+                  )
+                  ,bsTooltip(
+                    id = NS(id,"SecondaryTutorial"),
+                    title = "Click here to learn about setting dataset options to generate the volcano plot",
+                    placement = "top",
+                    trigger = "hover"
                   )
                 )
               ),
@@ -186,7 +256,9 @@ KaryotypeUI <- function(id) {
                     id = NS(id,"AnalyteContent"),
                     boxPlus(
                       id = NS(id,"AnalyteContent"),
-                      title = htmlOutput(NS(id,"AnalyteBoxPlotPlotTitle")),
+                      title = htmlOutput(
+                        NS(id,"AnalyteBoxPlotPlotTitle")
+                      ),
                       height= "auto",
                       width = "auto",
                       closable = FALSE, 
@@ -413,6 +485,27 @@ KaryotypeServer <- function(id) {
                          errorMessage = "",
                          groupselectmodalstate = -1  
                          )  
+
+    observeEvent(input$PrimaryTutorial,{
+
+      updateSelectizeInput(
+        session = session,
+        inputId = "TutorialName",
+        selected = "DatasetOptions"
+      )
+
+    })
+
+  
+    observeEvent(input$SecondaryTutorial,{
+
+      updateSelectizeInput(
+        session = session,
+        inputId = "TutorialName",
+        selected = "DatasetOptions"
+      )
+
+    })
 
     observeEvent(input$TutorialName, {
       
@@ -758,6 +851,7 @@ KaryotypeServer <- function(id) {
             data-placement="auto right" 
             title="" 
             class="fas fa-info-circle gtooltip"
+            style="color:#1e8bf0;"
             data-original-title="Click here to learn about setting dataset options">
             </span>
           </h3>'        
@@ -791,6 +885,7 @@ KaryotypeServer <- function(id) {
             data-placement="auto right" 
             title="" 
             class="fas fa-info-circle gtooltip"
+            style="color:#1e8bf0;"
             data-original-title="',tooltip,'">
             </span>
           </h3>'
@@ -805,7 +900,10 @@ KaryotypeServer <- function(id) {
           '<h3>Unable to display Volcano plot
             <span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
               data-toggle="tooltip"
-              data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+              data-placement="auto right" 
+              title="" 
+              class="fas fa-info-circle gtooltip"
+              style="color:#1e8bf0;"
               data-original-title="Click here to learn about setting dataset options">
             </span>
           </h3>'
@@ -883,6 +981,7 @@ KaryotypeServer <- function(id) {
             data-placement="auto right" 
             title="" 
             class="fas fa-info-circle gtooltip"
+            style="color:#1e8bf0;"
             data-original-title="Click any link below to search external sites for ',rv$selectedAnalyte$searchName,'">
           </span>
         </h4>'
@@ -1057,7 +1156,10 @@ KaryotypeServer <- function(id) {
             '<h3>Effect of ',groupVariableLabel,' on ',input$Analyte,' in plasma
               <span onclick=\"launchTutorial(\'',id,'\',\'BoxPlot\')\"
                 data-toggle="tooltip"
-                data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+                data-placement="auto right" 
+                title="" 
+                class="fas fa-info-circle gtooltip"
+                style="color:#1e8bf0;"
                 data-original-title="Use the box or lasso select to highlight records and see additional information below">
               </span>
             </h3>',
@@ -1075,7 +1177,10 @@ KaryotypeServer <- function(id) {
             '<h3>Please choose an analyte from the volcano plot
               <span onclick=\"launchTutorial(\'',id,'\',\'VolcanoPlot\')\"
                 data-toggle="tooltip"
-                data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+                data-placement="auto right" 
+                title="" 
+                class="fas fa-info-circle gtooltip"
+                style="color:#1e8bf0;"
                 data-original-title="Use the box or lasso select to highlight records and see additional information below">
               </span>
             </h3>'
@@ -1091,7 +1196,10 @@ KaryotypeServer <- function(id) {
           '<h3>Unable to display plot ',ifelse(input$Analyte!="",paste0('for ',input$Analyte),''),
             '<span onclick=\"launchTutorial(\'',id,'\',\'DatasetOptions\')\" 
               data-toggle="tooltip"
-              data-placement="auto right" title="" class="fas fa-info-circle gtooltip"
+              data-placement="auto right" 
+              title="" 
+              class="fas fa-info-circle gtooltip"
+              style="color:#1e8bf0;"
               data-original-title="Click here to learn about setting dataset options">
             </span>
           </h3>'
