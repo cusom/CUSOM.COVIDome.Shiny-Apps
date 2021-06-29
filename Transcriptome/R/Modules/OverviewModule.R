@@ -21,20 +21,29 @@ OverviewUI <- function(id) {
                   While the DNA that encodes all genes is the same in every cell, different types of cells (e.g. a heart cell versus a liver cell) may turn certain genes on 
                   and off at different times. Other factors may also affect what genes are turned on and off, such as age, gender, and diseases or other health conditions. 
                   Therefore, by measuring the levels of all RNAs (i.e. the "transcriptome"), we can understand what genes are expressed in a variety of situations. 
-                  We used transcriptomics to compare gene expression in the bloodstream of people with and without a confirmed diagnosis of COVID19.
+                  We used transcriptomics to compare gene expression in the bloodstream of people with and without a confirmed diagnosis of COVID-19.
                 </p>
                 <br />
 
                 <div class="overviewHeader">OVERVIEW</div>
                 <p>
-                  This dashboard presents transcriptome data generated from whole blood. 
-                  In the &lsquo;Effect of COVID19&rsquo; dashboard, users can explore the differences in gene expression levels between samples from those with versus without COVID19. 
-                  In the &lsquo;Effect of Seroconversion&rsquo; dashboard, users can explore the differences in gene expression levels between samples from COVID19 patients with low levels of seroconversion 
+                This application presents transcriptome data generated from whole blood. 
+                <br />
+                <div style="margin-left: 15px;">
+                  <span class="fas fa-virus"></span><b> Effect of COVID-19 status</b>: Explore the differences in gene expression levels between samples from those with versus without COVID-19. 
+                  <br />
+                  <span class="fas fa-shield-virus"></span><b> Effect of Seroconversion</b>: Explore the differences in gene expression levels between samples from COVID-19 patients with low levels of seroconversion 
                   versus those with high levels of seroconversion. 
-                  The data are searchable by <a href="./Transcriptome Gene Names.pdf" target="_blank"><b>gene name</b></a> and can be filtered by age group and sex. 
-                  Users can select different statistical tests and adjustment methods for multiple hypotheses correction. 
-                  A detailed description of seroconversion studies can be found in our manuscript under 
-                  <a href="https://www.medrxiv.org/content/10.1101/2020.12.05.20244442v1" target="_blank"><b>review.</b></a> 
+                  <br />
+                  <span class="fas fa-viruses"></span><b> Cross Omics Correlates</b>: Investigate correlations between any gene of choice and any other feature present in the other datasets.               
+                </div>
+                <br />
+                The data are searchable by <a href="./Transcriptome Gene Names.pdf" target="_blank"><b>gene name</b></a> and can be filtered by age group and sex. 
+                Users can select different statistical tests and adjustment methods for multiple hypotheses correction. 
+                A detailed description of how the COVIDome datasets were generated and how the COVIDome Explorer was built can be found in our manuscript under 
+                <a href="https://www.medrxiv.org/content/10.1101/2021.03.04.21252945v1.full" target="_blank"><b>review</b></a>. 
+                A detailed description of the analysis of the impact of seroconversion in COVID-19 can be found in our 
+                <a href="https://elifesciences.org/articles/65508" target="_blank"><b>eLIFE</b></a> publication.              
                 </p>
         
                 <br />
@@ -45,7 +54,19 @@ OverviewUI <- function(id) {
                   <a href="https://medschool.cuanschutz.edu/colorado-cancer-center/research/shared-resources/genomics" target="_blank">
                     <b>Genomics and Microarray Shared Resource of the University of Colorado.</b></a> 
                 </p>
-        
+                <br />
+
+                <div class="overviewHeader">Tutorials and Guides</div>
+                Please look out for
+                <span
+                  data-placement="top" 
+                  data-toggle="tooltip"               
+                  class="fas fa-info-circle gtooltip"
+                  style="color:#1e8bf0; font-size:16px;"
+                  data-original-title="Click me to launch tutorials or see additional information!">
+                </span>            
+                icons to learn more about how to use the various dashboards and how to interpret the diverse plots generated
+          
                 <br /><br />'
               )
             )
