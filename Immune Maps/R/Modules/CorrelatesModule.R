@@ -657,7 +657,7 @@ CorrelatesServer <- function(id) {
         show_modal_spinner(
           spin = "half-circle",
           color = "#3c8dbc",
-          text = glue("Getting list of {input$ComparisonPlatform} comparison analytes...Please wait...")
+          text = glue("Getting list of {input$ComparisonPlatform} comparison analytes...Once complete, click \"Generate Volcano Plot\"...")
         )
 
         shinyjs::disable("ComparisonAnalyte")
@@ -762,7 +762,7 @@ CorrelatesServer <- function(id) {
         show_modal_spinner(
           spin = "atom",
           color = "#3c8dbc",
-          text = "Getting correlation data...Please wait..."
+          text = "Getting correlation data...Please wait while the volcano plot is rendering..."
         )
        
         correlationData <- getCorrelationsDataset(input$Platform, input$QueryAnalyte, input$ComparisonPlatform) %>%
@@ -1344,7 +1344,7 @@ CorrelatesServer <- function(id) {
                 title="" 
                 class="fas fa-info-circle gtooltip"
                 style="color:#1e8bf0"
-                data-original-title="">
+                data-original-title="Click here to learn more about this plot">
               </span>
             </h3>
             {CUSOMShinyHelpers::formatPValue(p$p.value,p$p.value.adjustment.method)} &nbsp;&nbsp;&nbsp;  rho = {round(p$rho,2)}'
