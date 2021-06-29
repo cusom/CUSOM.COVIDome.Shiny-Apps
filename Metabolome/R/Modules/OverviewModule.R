@@ -31,11 +31,11 @@ OverviewUI <- function(id) {
                 This application presents metabolomic data generated from two different samples types: plasma and red blood cells (RBCs). 
                 <br />
                 <div style="margin-left: 15px;">
-                  <span class="fas fa-virus"></span><b> Effect of COVID-19 status</b>: Explore the differences in metabolite levels between samples from those with versus without COVID-19. 
+                  <span class="fas fa-virus"></span><b> <a title="Click to navigate to tab" onclick="openTab(\'Karyotype\')" >Effect of COVID-19 status</a></b>: Explore the differences in metabolite levels between samples from those with versus without COVID-19. 
                   <br />
-                  <span class="fas fa-shield-virus"></span><b> Effect of Seroconversion</b>: Explore the differences in metabolite levels between samples from COVID-19 patients with low levels of seroconversion versus those with high levels of seroconversion.  
+                  <span class="fas fa-shield-virus"></span><b> <a title="Click to navigate to tab" onclick="openTab(\'Seroconversion\')" >Effect of Seroconversion</a></b>: Explore the differences in metabolite levels between samples from COVID-19 patients with low levels of seroconversion versus those with high levels of seroconversion.  
                   <br />
-                  <span class="fas fa-viruses"></span><b> Cross Omics Correlates</b>: Investigate correlations between any metabolite of choice and any other feature present in the other datasets.
+                  <span class="fas fa-viruses"></span><b> <a title="Click to navigate to tab" onclick="openTab(\'Correlates\')" >Cross Omics Correlates</a></b>: Investigate correlations between any metabolite of choice and any other feature present in the other datasets.
                 </div>
                 <br />
                 The data are searchable by <a href="./Metabolite Names.pdf" target="_blank"><b>metabolite name</b></a> and can be filtered by age group and sex. 

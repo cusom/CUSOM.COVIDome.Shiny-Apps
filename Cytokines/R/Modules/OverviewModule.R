@@ -28,12 +28,13 @@ OverviewUI <- function(id) {
                 This application contains data generated from plasma using Meso Scale Discovery&reg; assays for 82 unique immune regulatory factors. 
                 <br />
                 <div style="margin-left: 15px;">
-                  <span class="fas fa-virus"></span><b> Effect of COVID-19 status</b>: Explore the differences in cytokine levels between samples from those with versus without COVID-19. 
+                  <span class="fas fa-virus"></span><b> <a title="Click to navigate to tab" onclick="openTab(\'Karyotype\')" >Effect of COVID-19 status</a></b>: Explore the differences in cytokine levels 
+                  between samples from those with versus without COVID-19. 
                   <br />
-                  <span class="fas fa-shield-virus"></span><b> Effect of Seroconversion</b>: Explore the differences in cytokine levels between samples from COVID-19 patients with low levels 
+                  <span class="fas fa-shield-virus"></span><b> <a title="Click to navigate to tab" onclick="openTab(\'Seroconversion\')" >Effect of Seroconversion</a></b>: Explore the differences in cytokine levels between samples from COVID-19 patients with low levels 
                   of seroconversion versus those with high levels of seroconversion.  
                   <br />
-                  <span class="fas fa-viruses"></span><b> Cross Omics Correlates</b>: Investigate correlations between any cytokine of choice and any other feature present in the other datasets.
+                  <span class="fas fa-viruses"></span><b> <a title="Click to navigate to tab" onclick="openTab(\'Correlates\')" >Cross Omics Correlates</a></b>: Investigate correlations between any cytokine of choice and any other feature present in the other datasets.
                 </div>
                 <br />
                 The data are searchable by <a href="./MSD Names.pdf" target="_blank"><b>factor name</b></a> and can be filtered by age group and sex. 
