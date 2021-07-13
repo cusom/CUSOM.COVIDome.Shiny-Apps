@@ -557,6 +557,20 @@ KaryotypeServer <- function(id) {
     },ignoreInit=TRUE)
 
     observeEvent(c(input$Platform),{
+
+      if(input$Platform != "" & input$Platform != rv$Platform) {
+        
+        shinyjs::runjs(glue("Plotly.purge('{id}-VolcanoPlot');"))
+        shinyjs::hide("VolcanoContent")
+        shinyjs::show("VolcanoStart")
+        shinyjs::show("VolcanoTutorialStart")
+        
+        shinyjs::runjs(glue("Plotly.purge('{id}-AnalytePlot');"))
+        shinyjs::hide("AnalyteContent")
+        shinyjs::hide("LogTransform")
+        shinyjs::hide("ExternalLinks")
+
+      } 
  
       if(grepl('Plasma',input$Platform)) {
              
@@ -765,6 +779,11 @@ KaryotypeServer <- function(id) {
     # Volcano Plot #### 
     output$VolcanoPlot <- renderPlotly({
      
+     validate(
+        need(rv$Platform != "", ""),
+        need(rv$Platform == input$Platform, "")
+      )
+
       dataframe <- shared_FoldChangeData$data(withSelection = FALSE) 
       
       if(!is.null(dataframe)) {
@@ -1093,6 +1112,12 @@ KaryotypeServer <- function(id) {
 
     # Box Plot ####
     output$AnalyteBoxPlot <- renderPlotly({
+
+      validate(
+        need(!is.na(input$Analyte),""),
+        need(input$Analyte != "",""),
+        need(input$Platform == rv$Platform,"")
+      )
       
       dataset <- AnalyteDataset()
 
