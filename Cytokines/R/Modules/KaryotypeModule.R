@@ -1210,82 +1210,38 @@ KaryotypeServer <- function(id) {
     observeEvent(event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") ), {
       
       e <- event_data("plotly_selected", source = paste0(id,"AnalyteBoxPlot") )
-     
-      recordIDs <- e %>% select(key) %>% pull()
 
-      if(length(recordIDs) < 10) {
+      if( length(e) > 0 ) {
         
-        rv$groupselectmodalstate <- 1
-        
-        showModal(
-          modalDialog(
-          title = "Cannot Highlight Group",
-          HTML(
-            paste0("You have selected only <b>",length(recordIDs), "</b> records and you must select at least <b><em>10</em></b> points to create a group. <br /><br />
-                  Please try your selection again...")
-               ),
-          easyClose = TRUE,
-          footer = tagList(
-            actionButton(inputId = NS(id,"dismiss_groupselectmodal"),
-                         label = "Dismiss")
-            )
+        recordIDs <- e %>% select(key) %>% pull()
+
+        if(length(recordIDs) < 10) {
+          
+          rv$groupselectmodalstate <- 1
+          
+          showModal(
+            modalDialog(
+            title = "Cannot Highlight Group",
+            HTML(
+              paste0("You have selected only <b>",length(recordIDs), "</b> records and you must select at least <b><em>10</em></b> points to create a group. <br /><br />
+                    Please try your selection again...")
+                ),
+            easyClose = TRUE,
+            footer = tagList(
+              actionButton(inputId = NS(id,"dismiss_groupselectmodal"),
+                          label = "Dismiss")
+              )
+          )
         )
-      )
 
-      } 
+        } 
 
-      else {
-
-        # A is empty 
-        if(is.null(input$GroupA)) {
-          
-          rv$lastGroupFilled <- "A"
-          
-          updatePickerInput(
-            session = session,
-            inputId = 'GroupA',
-            selected = recordIDs
-          )
-          
-        }
-        
-        #A is filled, B is empty 
-        else if(!is.null(input$GroupA) & is.null(input$GroupB)) {
-          
-          rv$lastGroupFilled <- "B"
-          
-          updatePickerInput(
-            session = session,
-            inputId = 'GroupB',
-            selected = recordIDs
-          )
-          
-        }
-        
-        # both are filled, 
-        ## check for overlap -- only add net new to the appropriate group
         else {
-          
-          if(rv$lastGroupFilled == "A") {
+
+          # A is empty 
+          if(is.null(input$GroupA)) {
             
-            # A was the last group filled, B is the target 
-            # find the overlapping items in selected and A vectors
-            recordIDs <- setdiff(recordIDs,input$GroupA)
-            
-            updatePickerInput(
-              session = session,
-              inputId = 'GroupB',
-              selected = recordIDs
-            )
-            
-            rv$lastGroupFilled <- "B"
-          } 
-          
-          else {
-            
-            # B was the last group filled, A is the target 
-            # find the overlapping items in selected and B vectors
-            recordIDs <- setdiff(recordIDs,input$GroupB)
+            rv$lastGroupFilled <- "A"
             
             updatePickerInput(
               session = session,
@@ -1293,8 +1249,56 @@ KaryotypeServer <- function(id) {
               selected = recordIDs
             )
             
-            rv$lastGroupFilled <- "A"
+          }
+          
+          #A is filled, B is empty 
+          else if(!is.null(input$GroupA) & is.null(input$GroupB)) {
             
+            rv$lastGroupFilled <- "B"
+            
+            updatePickerInput(
+              session = session,
+              inputId = 'GroupB',
+              selected = recordIDs
+            )
+            
+          }
+          
+          # both are filled, 
+          ## check for overlap -- only add net new to the appropriate group
+          else {
+            
+            if(rv$lastGroupFilled == "A") {
+              
+              # A was the last group filled, B is the target 
+              # find the overlapping items in selected and A vectors
+              recordIDs <- setdiff(recordIDs,input$GroupA)
+              
+              updatePickerInput(
+                session = session,
+                inputId = 'GroupB',
+                selected = recordIDs
+              )
+              
+              rv$lastGroupFilled <- "B"
+            } 
+            
+            else {
+              
+              # B was the last group filled, A is the target 
+              # find the overlapping items in selected and B vectors
+              recordIDs <- setdiff(recordIDs,input$GroupB)
+              
+              updatePickerInput(
+                session = session,
+                inputId = 'GroupA',
+                selected = recordIDs
+              )
+              
+              rv$lastGroupFilled <- "A"
+              
+            }
+
           }
 
         }
