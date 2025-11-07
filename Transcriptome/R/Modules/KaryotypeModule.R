@@ -773,8 +773,13 @@ KaryotypeServer <- function(id) {
         dataframe %>%
           mutate(text = paste0("Gene:", Analyte,
                                "<br />fold_change:", round(FoldChange,2),
-                               "<br />",CUSOMShinyHelpers::formatPValue(p.value,a$parameters$adjustmentMethod) 
-                                ), 
+                               "<br />",unlist(
+                                 purrr::pmap(
+                                   .l = list(p.value, a$parameters$adjustmentMethod),
+                                   CUSOMShinyHelpers::formatPValue
+                                 )
+                               )
+                              ), 
                  shape = "NA"
                   ) %>%
 
