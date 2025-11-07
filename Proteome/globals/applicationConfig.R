@@ -13,7 +13,7 @@ isDeployed <-  Sys.getenv('SHINY_PORT') != ""
 
 ApplicationURL <- ifelse(appConfig$Environment=="Production",appConfig$applicationURL,'')
 
-sideBarMenuItems <- read_tsv('./config/sidebarMenuItems.tsv',col_types = cols()) %>% filter(IsHidden == 0) %>% select(-c(IsHidden))
+sideBarMenuItems <- read_tsv('./config/sidebarmenuitems.tsv',col_types = cols()) %>% filter(IsHidden == 0) %>% select(-c(IsHidden))
 
 namespaces <- as.list(sideBarMenuItems$tabName) 
 
@@ -23,7 +23,7 @@ dropdownlinks <- read_tsv("./config/dropdownlinks.tsv",col_types = cols())
 
 tutorials <- read_tsv("./config/tutorials.tsv",col_types = cols())
 
-plotlyCustomIcons <- readRDS('config/plotlyCustomIcons.rds')
+plotlyCustomIcons <- readRDS('config/plotlycustomicons.rds')
 
 statTests <- CUSOMShinyHelpers::getStatTestByKeyGroup.methods
 
