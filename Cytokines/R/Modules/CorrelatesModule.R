@@ -830,7 +830,20 @@ CorrelatesServer <- function(id) {
           deferRender = TRUE,
           scrollY = 400,
           scroller = TRUE,
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+          buttons = list(
+            "colvis",
+              list(
+              extend = "collection",
+              text = "Download Data",
+              action = DT::JS(
+                paste0(
+                  "function ( e, dt, node, config ) {
+                    Shiny.setInputValue('", NS(id,"FoldChangeDataDownload"), "', true, {priority: 'event'});
+                  }"
+                )
+              )
+            )
+          )
         ),
         rownames = FALSE,
         style = 'bootstrap',
@@ -838,7 +851,13 @@ CorrelatesServer <- function(id) {
       )
     }, server=FALSE)
 
-
+    observeEvent(c(input$FoldChangeDataDownload), {
+      downloadFile(
+        id = NS(id,"download"),
+        fileName = glue("COVIDome_{str_replace_all(input$Platform,' ','_')}_Fold_Change_Summary_Data_{format(Sys.time(),\"%Y%m%d_%H%M%S\")}"),
+        dataForDownload = FoldChangeDataTableData()
+      )
+    }, ignoreInit = TRUE)
 
     # Volcano Plot #### 
     output$VolcanoPlot <- renderPlotly({
@@ -1160,8 +1179,8 @@ CorrelatesServer <- function(id) {
       ifelse(input$ComparisonAnalyte=="","Scatterplot Data",glue('{input$ComparisonAnalyte} vs. {input$QueryAnalyte} Scatterplot Data'))
     })
 
-    output$AnalyteDataTable <- DT::renderDataTable({
-      
+    AnalyteDataTableData <- reactive({
+
       dataframe <- AnalyteDataset()
       
       analyte_x <- dataframe$xLabel[1]
@@ -1174,9 +1193,15 @@ CorrelatesServer <- function(id) {
       dataframe <- dataframe %>% 
         select(-c(Measurement.x, Measurement.y,xLabel,yLabel,x,y)) %>% 
         rename(`:=`(!!xlabel,log2x), `:=`(!!ylabel, log2y))
-      
+
+      return(dataframe)
+
+    })
+
+    output$AnalyteDataTable <- DT::renderDataTable({
+          
       DT::datatable(
-        data = dataframe,
+        data = AnalyteDataTableData(),
         caption = htmltools::tags$caption(
           style = 'caption-side: bottom; text-align: center;',
           ifelse(input$ComparisonAnalyte=="","Scatterplot Data",glue('{input$ComparisonAnalyte} vs. {input$QueryAnalyte} Scatterplot Data'))
@@ -1193,13 +1218,34 @@ CorrelatesServer <- function(id) {
           scrollX =TRUE,
           columnDefs = list(list(width = '200px', targets = "_all")),
           pageLength = 10, 
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+          buttons = list(
+            "colvis",
+              list(
+              extend = "collection",
+              text = "Download Data",
+              action = DT::JS(
+                paste0(
+                  "function ( e, dt, node, config ) {
+                    Shiny.setInputValue('", NS(id,"SampleDataDownload"), "', true, {priority: 'event'});
+                  }"
+                )
+              )
+            )
+          )
         ), 
         rownames = FALSE, 
         style = 'bootstrap',
         escape = FALSE
       )
     }, server=TRUE) 
+
+    observeEvent(c(input$SampleDataDownload), {
+      downloadFile(
+        id = NS(id,"download"),
+        fileName = glue("COVIDome_Cross_Omics_Correlates_Data_{format(Sys.time(),\"%Y%m%d_%H%M%S\")}"),
+        dataForDownload = AnalyteDataTableData()
+      )
+    }, ignoreInit = TRUE) 
   
     # Plot ####
     output$AnalytePlot <- renderPlotly({

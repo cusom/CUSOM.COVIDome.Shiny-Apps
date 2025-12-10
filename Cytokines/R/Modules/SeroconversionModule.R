@@ -1636,14 +1636,15 @@ SeroconversionServer <- function(id) {
     output$SelectedAnalyteHighlightGroupsDataTitle <- renderUI ({
       paste0(input$Analyte,' Sample Level Data Highlighted Groups')
     })
+    SelectedAnalyteRecordsData <- reactive({
+      GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
+        filter(!is.na(`Highlight Group`)) 
+    })
 
     output$SelectedAnalyteRecordsDataTable <- DT::renderDataTable({
       
-      dataframe <- GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
-        filter(!is.na(`Highlight Group`)) 
-      
       DT::datatable(
-        data = dataframe ,
+        data = SelectedAnalyteRecordsData(),
         caption = htmltools::tags$caption(
           style = 'caption-side: bottom; text-align: center;',
           paste0(input$Analyte,' Sample Level Data: '), htmltools::em(paste0('Sample Level Data for highlighted records on ',input$Analyte,' Box-Plot'))
@@ -1655,18 +1656,39 @@ SeroconversionServer <- function(id) {
           colReorder = TRUE,
           autowidth=FALSE,
           deferRender = TRUE,
-          scrollX =TRUE,
+          scrollX = TRUE,
           scrollY = 400,
           scroller = TRUE,
           columnDefs = list(list(width = '200px', targets = "_all")),
           pageLength = 10,
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+          buttons = list(
+            "colvis",
+            list(
+              extend = "collection",
+              text = "Download Data",
+              action = DT::JS(
+                paste0(
+                  "function ( e, dt, node, config ) {
+                    Shiny.setInputValue('", NS(id,"SelectedSampleDataDownload"), "', true, {priority: 'event'});
+                  }"
+                )
+              )
+            )
+          )
         ),
         rownames = FALSE,
         style = 'bootstrap'
       )
 
     }, server=FALSE)
+
+    observeEvent(c(input$SelectedSampleDataDownload), {
+      downloadFile(
+        id = NS(id,"download"),
+        fileName = glue("COVIDome_{str_replace_all(input$Platform,' ','_')}_Selected_Sample_Level_Data_{format(Sys.time(),\"%Y%m%d_%H%M%S\")}"),
+        dataForDownload = SelectedAnalyteRecordsData()
+      )
+    }, ignoreInit = TRUE)
 
 
   })

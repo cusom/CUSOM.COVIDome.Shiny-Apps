@@ -3933,7 +3933,8 @@
       "URL": "https://www.rforge.net/uuid",
       "BugReports": "https://github.com/s-u/uuid/issues",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
+      "Encoding": "UTF-8",
       "ExperimentalWindowsRuntime": "ucrt"
     },
     "vctrs": {
