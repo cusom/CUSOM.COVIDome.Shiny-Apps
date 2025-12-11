@@ -740,7 +740,20 @@ SeroconversionServer <- function(id) {
           deferRender = TRUE,
           scrollY = 400,
           scroller = TRUE,
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+          buttons = list(
+            "colvis",
+              list(
+              extend = "collection",
+              text = "Download Data",
+              action = DT::JS(
+                paste0(
+                  "function ( e, dt, node, config ) {
+                    Shiny.setInputValue('", NS(id,"FoldChangeDataDownload"), "', true, {priority: 'event'});
+                  }"
+                )
+              )
+            )
+          )
         ),
         rownames = FALSE,
         style = 'bootstrap',
@@ -748,6 +761,13 @@ SeroconversionServer <- function(id) {
       )
     }, server=FALSE)
     
+    observeEvent(c(input$FoldChangeDataDownload), {
+      downloadFile(
+        id = NS(id,"download"),
+        fileName = glue("COVIDome_{str_replace_all(input$Platform,' ','_')}_Fold_Change_Summary_Data_{format(Sys.time(),\"%Y%m%d_%H%M%S\")}"),
+        dataForDownload = FoldChangeDataTableData()
+      )
+    }, ignoreInit = TRUE)
     
     # Volcano Plot #### 
     output$VolcanoPlot <- renderPlotly({
@@ -1052,14 +1072,16 @@ SeroconversionServer <- function(id) {
     output$SelectedAnalyteRawDataTitle <- renderText({
       ifelse(input$Analyte=="",'All Sample Level Data',paste0('Sample Level Data for ', input$Analyte))
     })
+
+    SampleLevelData <- reactive({
+      GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
+        select(-c(`Highlight Group`)) 
+    })
    
     output$AnalyteDataTable <- DT::renderDataTable({
-     
-      dataframe <- GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
-        select(-c(`Highlight Group`)) 
 
       DT::datatable(
-        data = dataframe,
+        data = SampleLevelData(),
         caption = htmltools::tags$caption(
           style = 'caption-side: bottom; text-align: center;',
           paste0(input$Analyte, ' Data: '), htmltools::em(paste0(' Data for ',input$Analyte,' Box-Plot'))
@@ -1076,12 +1098,33 @@ SeroconversionServer <- function(id) {
           scrollX =TRUE,
           columnDefs = list(list(width = '200px', targets = "_all")),
           pageLength = 10, 
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+          buttons = list(
+            "colvis",
+              list(
+              extend = "collection",
+              text = "Download Data",
+              action = DT::JS(
+                paste0(
+                  "function ( e, dt, node, config ) {
+                    Shiny.setInputValue('", NS(id,"SampleDataDownload"), "', true, {priority: 'event'});
+                  }"
+                )
+              )
+            )
+          )
         ), 
         rownames = FALSE, 
         style = 'bootstrap'
       )
-    }, server=TRUE)    
+    }, server=TRUE)  
+
+    observeEvent(c(input$SampleDataDownload), {
+      downloadFile(
+        id = NS(id,"download"),
+        fileName = glue("COVIDome_{str_replace_all(input$Platform,' ','_')}_Sample_Level_Data_{format(Sys.time(),\"%Y%m%d_%H%M%S\")}"),
+        dataForDownload = SampleLevelData()
+      )
+    }, ignoreInit = TRUE)    
 
     # Box Plot ####
     output$AnalyteBoxPlot <- renderPlotly({
@@ -1637,13 +1680,15 @@ SeroconversionServer <- function(id) {
       paste0(input$Analyte,' Sample Level Data Highlighted Groups')
     })
 
+    SelectedAnalyteRecordsData <- reactive({
+      GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
+        filter(!is.na(`Highlight Group`))  
+    })
+
     output$SelectedAnalyteRecordsDataTable <- DT::renderDataTable({
       
-      dataframe <- GetAnalyteData(input$Platform, input$Sex, input$AgeGroup,input$Analyte, input$GroupA, input$GroupB) %>%
-        filter(!is.na(`Highlight Group`))  
-      
       DT::datatable(
-        data = dataframe ,
+        data = SelectedAnalyteRecordsData() ,
         caption = htmltools::tags$caption(
           style = 'caption-side: bottom; text-align: center;',
           paste0(input$Analyte,' Sample Level Data: '), htmltools::em(paste0('Sample Level Data for highlighted records on ',input$Analyte,' Box-Plot'))
@@ -1660,13 +1705,34 @@ SeroconversionServer <- function(id) {
           scroller = TRUE,
           columnDefs = list(list(width = '200px', targets = "_all")),
           pageLength = 10,
-          buttons = c('copy', 'csv', 'excel', 'pdf', 'print','colvis')
+          buttons = list(
+            "colvis",
+              list(
+              extend = "collection",
+              text = "Download Data",
+              action = DT::JS(
+                paste0(
+                  "function ( e, dt, node, config ) {
+                    Shiny.setInputValue('", NS(id,"SelectedSampleDataDownload"), "', true, {priority: 'event'});
+                  }"
+                )
+              )
+            )
+          )
         ),
         rownames = FALSE,
         style = 'bootstrap'
       )
 
     }, server=FALSE)
+
+    observeEvent(c(input$SelectedSampleDataDownload), {
+      downloadFile(
+        id = NS(id,"download"),
+        fileName = glue("COVIDome_{str_replace_all(input$Platform,' ','_')}_Selected_Sample_Level_Data_{format(Sys.time(),\"%Y%m%d_%H%M%S\")}"),
+        dataForDownload = SelectedAnalyteRecordsData()
+      )
+    }, ignoreInit = TRUE)
 
     
   })
